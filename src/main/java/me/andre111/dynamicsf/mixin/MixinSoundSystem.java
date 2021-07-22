@@ -40,22 +40,28 @@ import net.minecraft.util.math.Vec3d;
 @SuppressWarnings("rawtypes")
 public class MixinSoundSystem {
 
-	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update breaks
-	@Inject(at = @At(value="INVOKE", target="Lnet/minecraft/client/options/GameOptions;getSoundVolume(Lnet/minecraft/sound/SoundCategory;)F", ordinal=0), method = "Lnet/minecraft/client/sound/SoundSystem;tick()V", locals=LocalCapture.CAPTURE_FAILHARD)
-	public void onTick(CallbackInfo ci, Iterator iterator, Map.Entry entry, Channel.SourceManager sourceManager, SoundInstance soundInstance) {
+	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update
+	// breaks
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/GameOptions;getSoundVolume(Lnet/minecraft/sound/SoundCategory;)F", ordinal = 0), method = "Lnet/minecraft/client/sound/SoundSystem;tick()V", locals = LocalCapture.CAPTURE_FAILHARD)
+	public void onTick(CallbackInfo ci, Iterator iterator, Map.Entry entry, Channel.SourceManager sourceManager,
+			SoundInstance soundInstance) {
 		sourceManager.run(source -> {
 			SourceWithID sourceWithID = (SourceWithID) source;
-			
+
 			DynamicSoundFilters.getFilterManager().updateSoundInstance(soundInstance, sourceWithID.getID());
 		});
 	}
-	
-	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update breaks
-	@Inject(at = @At(value="INVOKE", target="Lnet/minecraft/client/sound/Channel$SourceManager;run(Ljava/util/function/Consumer;)V", ordinal=0), method = "Lnet/minecraft/client/sound/SoundSystem;play(Lnet/minecraft/client/sound/SoundInstance;)V", locals=LocalCapture.CAPTURE_FAILHARD)
-	public void onPlay(SoundInstance soundInstance, CallbackInfo ci, WeightedSoundSet weightedSoundSet, Identifier identifier, Sound sound, float f, float g, SoundCategory soundCategory, float h, float i, SoundInstance.AttenuationType attenuationType, boolean bl, Vec3d vec3d, boolean bl3, boolean bl4, CompletableFuture completableFuture, Channel.SourceManager sourceManager) {
+
+	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update
+	// breaks
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sound/Channel$SourceManager;run(Ljava/util/function/Consumer;)V", ordinal = 0), method = "Lnet/minecraft/client/sound/SoundSystem;play(Lnet/minecraft/client/sound/SoundInstance;)V", locals = LocalCapture.CAPTURE_FAILHARD)
+	public void onPlay(SoundInstance soundInstance, CallbackInfo ci, WeightedSoundSet weightedSoundSet,
+			Identifier identifier, Sound sound, float f, float g, SoundCategory soundCategory, float h, float i,
+			SoundInstance.AttenuationType attenuationType, boolean bl, Vec3d vec3d, boolean bl3, boolean bl4,
+			CompletableFuture completableFuture, Channel.SourceManager sourceManager) {
 		sourceManager.run(source -> {
 			SourceWithID sourceWithID = (SourceWithID) source;
-			
+
 			DynamicSoundFilters.getFilterManager().updateSoundInstance(soundInstance, sourceWithID.getID());
 		});
 	}
