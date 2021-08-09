@@ -30,7 +30,7 @@ Forked from https://gitlab.com/binero/minecraft-dynamic-sound-filters (then opti
 These two may be fixed in the next release
 
 3. no echo
-4. no reverse reverb
+4. no reverse reverb  
 These may take longer.
 
 ---
