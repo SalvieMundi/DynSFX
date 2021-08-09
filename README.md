@@ -37,10 +37,10 @@ These may take longer.
 
 ### Known non-issues:
 1. delay for applying effects
-> This' to keep your FPS and TPS running smoothly.
+> This' to keep your FPS and TPS running smoothly.  
 > If you wish to remove this ~50ms delay in effect accuracy updates, please modify:
 
-`src/main/java/me/andre111/dynamicsf/FilterManager.java`   LN:40
+`src/main/java/me/andre111/dynamicsf/FilterManager.java`   LN:40  
 from:
 ```java
         update = !update;
@@ -50,10 +50,10 @@ to:
         update = true;
 ```
 
-Then open a terminal/command line
-Linux: Ctrl+Shift+T, may be different for your distro
-Windows: Windows key (super/meta) + R, type cmd, Enter
-Mac: Command+Space, type in terminal, Enter
+Then open a terminal/command line:  
+Linux: Ctrl+Shift+T, may be different for your distro.  
+Windows: Windows key (super/meta) + R, type cmd, Enter.  
+Mac: Command+Space, type in terminal, Enter.  
 
 now type:
 ```sh
@@ -67,8 +67,8 @@ cd path/into/wherever/you/downloaded/or/cloned/this/repo/to
 gradlew.bat licenseFormat
 gradlew.bat build
 ```
-Assuming you built it correctly, your `.jar` file will be in `build/lib/`
-It'll be the one without `-dev` and without `-source`
+Assuming you built it correctly, your `.jar` file will be in `build/lib/`  
+It'll be the one without `-dev` and without `-source`  
 Enjoy!
 
 ---
