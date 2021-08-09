@@ -34,7 +34,7 @@ public class Config {
 	}
 	
 	public static void loadData() {
-		if (file.exists() ){
+		if (file.exists() ) {
 			try ( BufferedReader reader = new BufferedReader(new FileReader(file) )) {
 				data = gson.fromJson(reader, ConfigData.class);
 			} catch (IOException e) {
@@ -44,8 +44,8 @@ public class Config {
 	}
 	
 	public static void saveData() {
-		if (!file.exists() ){
-			if (!file.getParentFile().exists() ){
+		if (!file.exists() ) {
+			if (!file.getParentFile().exists() ) {
 				file.getParentFile().mkdirs();
 			}
 			try {

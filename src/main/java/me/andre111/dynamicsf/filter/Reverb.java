@@ -86,7 +86,7 @@ public class Reverb {
 			reinit();
 		}
 		// if not needed, exit
-		if (!enabled || (reflectionsDelay <= 0 && lateReverbDelay <= 0) )return false;
+		if (!enabled || reflectionsDelay + lateReverbDelay <= 0 ) return false;
 
 		if (soundInstance.getAttenuationType() == SoundInstance.AttenuationType.LINEAR) {
 			roomRolloffFactor = 2f / (Math.max(soundInstance.getVolume(), 1f) + 2f);
@@ -94,19 +94,19 @@ public class Reverb {
 			roomRolloffFactor = 0f;
 		}
 
-		density = 				Utils.clamp(density);
-		diffusion = 			Utils.clamp(diffusion);
-		gain = 					Utils.clamp(gain);
-		gainHF = 				Utils.clamp(gainHF);
-		decayTime = 			Utils.clamp(decayTime);
-		decayHFRatio = 			Utils.clamp(decayHFRatio);
-		reflectionsGain = 		Utils.clamp(reflectionsGain);
-		reflectionsDelay = 		Utils.clamp(reflectionsDelay);
-		lateReverbGain = 		Utils.clamp(lateReverbGain);
-		lateReverbDelay = 		Utils.clamp(lateReverbDelay);
-		airAbsorptionGainHF = 	Utils.clamp(airAbsorptionGainHF);
-		roomRolloffFactor = 	Utils.clamp(roomRolloffFactor);
-		decayHFLimit = 			Utils.clamp(decayHFLimit);
+		density = Utils.clamp(density);
+		diffusion = Utils.clamp(diffusion);
+		gain = Utils.clamp(gain);
+		gainHF = Utils.clamp(gainHF);
+		decayTime = Utils.clamp(decayTime);
+		decayHFRatio = Utils.clamp(decayHFRatio);
+		reflectionsGain = Utils.clamp(reflectionsGain);
+		reflectionsDelay = Utils.clamp(reflectionsDelay);
+		lateReverbGain = Utils.clamp(lateReverbGain);
+		lateReverbDelay = Utils.clamp(lateReverbDelay);
+		airAbsorptionGainHF = Utils.clamp(airAbsorptionGainHF);
+		roomRolloffFactor = Utils.clamp(roomRolloffFactor);
+		decayHFLimit = Utils.clamp(decayHFLimit);
 
 		EXTEfx.alAuxiliaryEffectSlotf(slot, EXTEfx.AL_EFFECTSLOT_GAIN, 0);
 		EXTEfx.alEffecti(id, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);
@@ -183,12 +183,12 @@ public class Reverb {
 			for (int i = 0; i < maxBlocks && !toVisit.isEmpty(); ++i) {
 				final BlockPos current = toVisit.remove(random.nextInt(toVisit.size() ));
 				visited.add(current);
-				for(Direction direction : Direction.values() ){
+				for(Direction direction : Direction.values() ) {
 					final BlockPos pos = current.offset(direction);
 					final BlockState blockState = client.world.getBlockState(pos);
 					final Material material = blockState.getMaterial();
-					if (!material.blocksMovement() ){
-						if (!visited.contains(pos) && !toVisit.contains(pos) ){
+					if (!material.blocksMovement() ) {
+						if (!visited.contains(pos) && !toVisit.contains(pos) ) {
 							toVisit.add(pos);
 						}
 						if (!blockState.isAir() && material != Material.WATER && material != Material.LAVA) {
@@ -201,23 +201,23 @@ public class Reverb {
 			}
 
 			// calculate decay factor
-			double highReverb = 0.0;
-			double midReverb = 0.0;
-			double lowReverb = 0.0;
+			double highReverb = 0d;
+			double midReverb = 0d;
+			double lowReverb = 0d;
 			for (BlockState blockState : blocksFound) {
 				// custom block reverb overrides
 				final ReverbInfo customReverb = data.reverbFilter.getCustomBlockReverb(Registry.BLOCK.getId(blockState.getBlock() ));
 				if (customReverb != null) {
 					switch(customReverb) {
 					case HIGH:
-						highReverb += 1.0;
+						highReverb += 1;
 						break;
 					case LOW:
-						lowReverb += 1.0;
+						lowReverb += 1;
 						break;
 					case MID:
 					default:
-						midReverb += 1.0;
+						midReverb += 1;
 						break;
 					}
 				} else {
@@ -245,7 +245,7 @@ public class Reverb {
 			// calculate sky factor
 			float skyFactor = 0;
 			if (checkSky && roomSize == maxBlocks) {
-				if (hasSkyAbove(client.world, playerPos) )skyFactor += 1;
+				if (hasSkyAbove(client.world, playerPos) ) skyFactor += 1;
 				final Direction[] directions = new Direction[] { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 				for(Direction direction : directions) {
 					if (hasSkyAbove(client.world, playerPos.offset(direction, random.nextInt(5) + 5) )) skyFactor += 1;
@@ -279,7 +279,7 @@ public class Reverb {
 	}
 
 	private static boolean hasSkyAbove(final ClientWorld world, final BlockPos pos) {
-		if (world.getDimension().hasCeiling() )return false;
+		if (world.getDimension().hasCeiling() ) return false;
 		
 		final Chunk chunk = world.getChunk(pos);
 		final Heightmap heightMap = chunk.getHeightmap(Heightmap.Type.MOTION_BLOCKING);

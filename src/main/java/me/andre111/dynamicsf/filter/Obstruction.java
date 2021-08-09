@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
 
 import org.lwjgl.openal.EXTEfx;
 
@@ -40,7 +39,6 @@ import net.minecraft.util.math.Vec3d;
 
 public class Obstruction {
 	private static int id = -1;
-	private static int slot = -1;
 	
 	private static boolean enabled = false;
 	private static Map<SoundInstance, Float> obstructions = new HashMap<>();
@@ -52,7 +50,6 @@ public class Obstruction {
 	
 	public static void reinit() {
 		id = EXTEfx.alGenFilters();
-		//slot = EXTEfx.alGenAuxiliaryEffectSlots();
 	}
 	
 	public static void updateGlobal(final boolean verdict, final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
@@ -72,7 +69,7 @@ public class Obstruction {
 		// process liquid filter
 		float gain = 1f;
 		float gainHF = 1f;
-		if (Liquid.updateSoundInstance(soundInstance) ){
+		if (Liquid.updateSoundInstance(soundInstance) ) {
 			gain = Liquid.getGain();
 			gainHF = Liquid.getGainHF();
 		}
@@ -123,10 +120,10 @@ public class Obstruction {
 		
 		// add new sounds
 		SoundInstance newSoundInstance = null;
-		while((newSoundInstance = toScan.poll() )!= null) obstructions.put(newSoundInstance, 0f);
+		while((newSoundInstance = toScan.poll() ) != null) obstructions.put(newSoundInstance, 0f);
 		
 		// update sound obstructions
-		for(Map.Entry<SoundInstance, Float> e : obstructions.entrySet() ){
+		for(Map.Entry<SoundInstance, Float> e : obstructions.entrySet() ) {
 			final float currentAmount = e.getValue();
 			final float nextAmount = getObstructionAmount(e.getKey(), client, data, clientPos);
 			// e.setValue((currentAmount * 3f + nextAmount) / 4f);
@@ -168,11 +165,11 @@ public class Obstruction {
 			// get block data
 			final BlockState blockState = client.world.getBlockState(currentPosInt);
 			// calculate obstruction
-			if (blockState.isFullCube(client.world, currentPosInt) ){
+			if (blockState.isFullCube(client.world, currentPosInt) ) {
 				// I used math. :)
 				obstruction += increments.length() *
 					obstructionStep *
-					(HIGH_OBSTRUCTION_MATERIALS.contains( blockState.getMaterial() )? 2 : 1);
+					(HIGH_OBSTRUCTION_MATERIALS.contains( blockState.getMaterial() ) ? 2 : 1);
 				
 				if (obstruction >= obstructionMax) return obstructionMax;
 			}

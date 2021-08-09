@@ -20,6 +20,11 @@ package me.andre111.dynamicsf;
 // find (regex): ^(\s*([^/])(\2|\*).+)(if|\))\s*(\(|\))\s*
 // replace (regex-replace): $1$4 $5
 // if you don't understand it, don't worry, test it out...
+// there's this one too:
+// ^(\s*[^/]+\(.+\))([^\s;()\\,+.])
+// $1 $2
+// however, this one's dangerous (mostly to the gradle build files) and should
+// be used cautiously
 
 /**
  * Utils

@@ -60,12 +60,10 @@ now type:
 cd path/into/wherever/you/downloaded/or/cloned/this/repo/to
 
 # for Linux & Mac
-./gradlew licenseFormat
-./gradlew build
+./gradlew licenseFormat build
 
 # for Windows
-gradlew.bat licenseFormat
-gradlew.bat build
+gradlew.bat licenseFormat build
 ```
 Assuming you built it correctly, your `.jar` file will be in `build/lib/`  
 It'll be the one without `-dev` and without `-source`  

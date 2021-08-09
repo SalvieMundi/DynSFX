@@ -73,7 +73,7 @@ public class ConfigDataReverb {
 	public float getDimensionBaseReverb(Identifier dimension) {
 		calculateCache();
 		
-		if (dimensionBaseReverbMap.containsKey(dimension) ){
+		if (dimensionBaseReverbMap.containsKey(dimension) ) {
 			return dimensionBaseReverbMap.get(dimension);
 		}
 		

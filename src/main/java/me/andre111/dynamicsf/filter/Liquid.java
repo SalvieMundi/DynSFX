@@ -43,7 +43,8 @@ public class Liquid {
 
 		gain = Utils.clamp(gain);
 		gainHF = Utils.clamp(gainHF);
-		if (gain >= 1 && gainHF >= 1) return false;
+		// removed a branch here
+		if (gain + gainHF >= 2) return false;
 		
 		return true;
 	}
@@ -58,10 +59,10 @@ public class Liquid {
 	
 	private static void reset() {
 		enabled = false;
-		gain = 1.0f;
-		gainHF = 1.0f;
-		targetGain = 1.0f;
-		targetGainHF = 1.0f;
+		gain = 1f;
+		gainHF = 1f;
+		targetGain = 1f;
+		targetGainHF = 1f;
 	}
 
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
@@ -76,19 +77,19 @@ public class Liquid {
 		FluidState fluidState = client.world.getFluidState(playerPos);
 
 		// detect if in fluid, sort by usual density
-		if (fluidState.isIn(FluidTags.LAVA) ){
+		if (fluidState.isIn(FluidTags.LAVA) ) {
 			targetGain = data.liquidFilter.lavaGain;
 			targetGainHF = data.liquidFilter.lavaGainHF;
-		} else if (fluidState.isIn(FluidTags.WATER) ){
+		} else if (fluidState.isIn(FluidTags.WATER) ) {
 			targetGain = data.liquidFilter.waterGain;
 			targetGainHF = data.liquidFilter.waterGainHF;
 		} else {
-			targetGain = 1.0f;
-			targetGainHF = 1.0f;
+			targetGain = 1f;
+			targetGainHF = 1f;
 		}
 		
 		// interpolate values
-		gain = (targetGain + gain) / 2.0f;
-		gainHF = (targetGainHF + gainHF) / 2.0f;
+		gain = (targetGain + gain) / 2f;
+		gainHF = (targetGainHF + gainHF) / 2f;
 	}
 }
