@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 André Schweiger
+ * Copyright (c) 2021 Andr? Schweiger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,42 +19,69 @@ import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.EXTEfx;
 
 import me.andre111.dynamicsf.config.Config;
-import me.andre111.dynamicsf.filter.ObstructionFilter;
-import me.andre111.dynamicsf.filter.ReverbFilter;
+import me.andre111.dynamicsf.config.ConfigData;
+import me.andre111.dynamicsf.filter.Obstruction;
+import me.andre111.dynamicsf.filter.Reverb;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.SoundInstance;
+import net.minecraft.util.math.Vec3d;
 
 @Environment(EnvType.CLIENT)
 public class FilterManager {
-	public void updateGlobal(MinecraftClient client) {
-		ReverbFilter.updateGlobal(client);
-		ObstructionFilter.updateGlobal(client);
+	private ConfigData data = Config.getData();
+	private Vec3d clientPos = new Vec3d(0,0,0);
+	private boolean verdict = false;
+	private boolean update = false;
+
+	public void updateGlobal(final MinecraftClient client) {
+		// 50ms inaccuraccy at worst + only ran 1/2 as often
+		update = !update;
+		if (update) {
+			// To recalculate, or not to recalculate.
+			// That, is the boolean condition.
+			verdict = !(client.world == null || client.player == null);
+			// if worth updating, then do so
+			if (verdict) {
+				// get player's head/ears position
+				clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
+				// get config states
+				data = Config.getData();
+			}
+			// if there's a world, and a player, then what's the overlap?
+			// merely the loading screen, in & out
+			// verdict = client.isRunning();
+		}
+
+		Reverb.updateGlobal(verdict, client, data, clientPos);
+		Obstruction.updateGlobal(verdict, client, data, clientPos);
 	}
 	
-	public void updateSoundInstance(SoundInstance soundInstance, int sourceID) {
-		if(Config.getData().general.isIgnoredSoundEvent(soundInstance.getId())) return;
-		
-		boolean includeReverb = ReverbFilter.updateSoundInstance(soundInstance);
-		boolean includeLowPass = ObstructionFilter.updateSoundInstance(soundInstance);
-		
-		AL11.alSourcei(sourceID, EXTEfx.AL_DIRECT_FILTER, includeLowPass ? ObstructionFilter.getID() : 0);
-		AL11.alSource3i(sourceID, EXTEfx.AL_AUXILIARY_SEND_FILTER, includeReverb ? ReverbFilter.getSlot() : 0, 0, includeLowPass ? ObstructionFilter.getID() : 0);
-		
-		// retry once on error
-		if(AL11.alGetError() != AL11.AL_NO_ERROR) {
-			ReverbFilter.reinit();
-			ObstructionFilter.reinit();
+	public void updateSoundInstance(final SoundInstance soundInstance, final int sourceID) {
+		// cancel if not needed
+		if (data.general.isIgnoredSoundEvent(soundInstance.getId() )) return;
 
-			AL11.alSourcei(sourceID, EXTEfx.AL_DIRECT_FILTER, includeLowPass ? ObstructionFilter.getID() : 0);
-			AL11.alSource3i(sourceID, EXTEfx.AL_AUXILIARY_SEND_FILTER, includeReverb ? ReverbFilter.getSlot() : 0, 0, includeLowPass ? ObstructionFilter.getID() : 0);
-		}
+		// whether each effect grouping should be applied
+		final boolean reverberate = Reverb.updateSoundInstance(soundInstance/*, data*/);
+		final boolean obstructed = Obstruction.updateSoundInstance(soundInstance, data);
+
+		// only evaluate obstruction and reverb once!
+		// since ran whence an err', worry merely of branches
+		final int obstructionID = obstructed ? Obstruction.getID() : 0;
+		final int reverbSlot = reverberate ? Reverb.getSlot() : 0;
 		
-		// report further errors
-		int error = AL11.alGetError();
-		if(error != AL11.AL_NO_ERROR) {
-			System.err.println("OpenAL error when applying sound filters: "+error);
+		// apply effects
+		for (int i = 0; i < 2; i++) {
+			// EXTEfx.AL_FILTER_BANDPASS EXTEfx.AL_EFFECTSLOT_GAIN EXTEfx.AL_EQUALIZER_HIGH_GAIN
+
+			AL11.alSourcei(sourceID, EXTEfx.AL_DIRECT_FILTER, obstructionID);
+			AL11.alSource3i(sourceID, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbSlot, 0, obstructionID);
+
+			// if error: log it and try once more, otherwise: end loop
+			final int error = AL11.alGetError();
+			if (error == AL11.AL_NO_ERROR) break;
+			else System.err.println("OpenAL error: "+error);
 		}
 	}
 }

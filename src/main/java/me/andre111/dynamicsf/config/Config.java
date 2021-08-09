@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 André Schweiger
+ * Copyright (c) 2021 Andr? Schweiger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,15 @@ import com.google.gson.Gson;
 public class Config {
 	private static Gson gson = new Gson();
 	private static ConfigData data = new ConfigData();
+	private static File file = new File("./config/dynamicsf/config.json");
 	
 	public static ConfigData getData() {
 		return data;
 	}
 	
 	public static void loadData() {
-		File file = getConfigFile();
-		if(file.exists()) {
-			try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		if (file.exists() ){
+			try ( BufferedReader reader = new BufferedReader(new FileReader(file) )) {
 				data = gson.fromJson(reader, ConfigData.class);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -44,9 +44,8 @@ public class Config {
 	}
 	
 	public static void saveData() {
-		File file = getConfigFile();
-		if(!file.exists()) {
-			if(!file.getParentFile().exists()) {
+		if (!file.exists() ){
+			if (!file.getParentFile().exists() ){
 				file.getParentFile().mkdirs();
 			}
 			try {
@@ -56,14 +55,10 @@ public class Config {
 			}
 		}
 		
-		try(BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+		try(BufferedWriter writer = new BufferedWriter(new FileWriter(file) )) {
 			gson.toJson(data, writer);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private static File getConfigFile() {
-		return new File("./config/dynamicsf/config.json");
 	}
 }

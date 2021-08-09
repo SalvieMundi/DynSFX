@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 André Schweiger
+ * Copyright (c) 2021 Andr? Schweiger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package me.andre111.dynamicsf.config;
 
 public class ConfigData {
 	public ConfigDataGeneral general = new ConfigDataGeneral();
-	public ConfigDataLiquidFilter liquidFilter = new ConfigDataLiquidFilter();
-	public ConfigDataReverbFilter reverbFilter = new ConfigDataReverbFilter();
-	public ConfigDataObstructionFilter obstructionFilter = new ConfigDataObstructionFilter();
+	public ConfigDataLiquid liquidFilter = new ConfigDataLiquid();
+	public ConfigDataReverb reverbFilter = new ConfigDataReverb();
+	public ConfigDataObstruction obstructionFilter = new ConfigDataObstruction();
 }

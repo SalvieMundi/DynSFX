@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 André Schweiger
+ * Copyright (c) 2021 Andr? Schweiger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,255 +29,256 @@ import net.minecraft.text.TranslatableText;
 public class ConfigScreen implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
+		ConfigData data = Config.getData();
 		return parent -> {
 			ConfigBuilder builder = ConfigBuilder.create();
 			builder.setParentScreen(parent);
-			builder.setTitle(new TranslatableText("dynamicsoundfilters.config.title"));
+			builder.setTitle(new TranslatableText("dynamicsoundfilters.config.title") );
 			ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
 			builder.setSavingRunnable(Config::saveData);
 
 			ConfigCategory generalCat = builder
-					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.general"));
+					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.general") );
 			{
 				generalCat.addEntry(entryBuilder
 						.startStrList(new TranslatableText("dynamicsoundfilters.config.general.ignored"),
-								Config.getData().general.ignoredSoundEvents)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.general.ignored.tooltip"))
+								data.general.ignoredSoundEvents)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.general.ignored.tooltip") )
 						.setDefaultValue(ConfigDataGeneral.DEFAULT_IGNORED_SOUND_EVENTS).setSaveConsumer(l -> {
-							Config.getData().general.ignoredSoundEvents = l;
-							Config.getData().general.recalculateCache();
-						}).build());
+							data.general.ignoredSoundEvents = l;
+							data.general.recalculateCache();
+						}).build() );
 			}
 
 			ConfigCategory liquidFilterCat = builder
-					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.liquid"));
+					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.liquid") );
 			{
 				liquidFilterCat.addEntry(entryBuilder
 						.startBooleanToggle(new TranslatableText("dynamicsoundfilters.config.liquid.enable"),
-								Config.getData().liquidFilter.enabled)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.enable.tooltip"))
-						.setDefaultValue(true).setSaveConsumer(b -> Config.getData().liquidFilter.enabled = b).build());
+								data.liquidFilter.enabled)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.enable.tooltip") )
+						.setDefaultValue(true).setSaveConsumer(b -> data.liquidFilter.enabled = b).build() );
 
 				SubCategoryBuilder waterCat = entryBuilder
-						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.liquid.water"));
+						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.liquid.water") );
 				{
 					waterCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gain"),
-									Config.getData().liquidFilter.waterGain)
-							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip"))
+									data.liquidFilter.waterGain)
+							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip") )
 							.setDefaultValue(0.8f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().liquidFilter.waterGain = f).build());
+							.setSaveConsumer(f -> data.liquidFilter.waterGain = f).build() );
 					waterCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf"),
-									Config.getData().liquidFilter.waterGainHF)
-							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip"))
+									data.liquidFilter.waterGainHF)
+							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip") )
 							.setDefaultValue(0.3f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().liquidFilter.waterGainHF = f).build());
+							.setSaveConsumer(f -> data.liquidFilter.waterGainHF = f).build() );
 				}
-				liquidFilterCat.addEntry(waterCat.build());
+				liquidFilterCat.addEntry(waterCat.build() );
 
 				SubCategoryBuilder lavaCat = entryBuilder
-						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.liquid.lava"));
+						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.liquid.lava") );
 				{
 					lavaCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gain"),
-									Config.getData().liquidFilter.lavaGain)
-							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip"))
+									data.liquidFilter.lavaGain)
+							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip") )
 							.setDefaultValue(0.5f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().liquidFilter.lavaGain = f).build());
+							.setSaveConsumer(f -> data.liquidFilter.lavaGain = f).build() );
 					lavaCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf"),
-									Config.getData().liquidFilter.lavaGainHF)
-							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip"))
+									data.liquidFilter.lavaGainHF)
+							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip") )
 							.setDefaultValue(0.1f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().liquidFilter.lavaGainHF = f).build());
+							.setSaveConsumer(f -> data.liquidFilter.lavaGainHF = f).build() );
 				}
-				liquidFilterCat.addEntry(lavaCat.build());
+				liquidFilterCat.addEntry(lavaCat.build() );
 			}
 
 			ConfigCategory reverbFilterCat = builder
-					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.reverb"));
+					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.reverb") );
 			{
 				reverbFilterCat.addEntry(entryBuilder
 						.startBooleanToggle(new TranslatableText("dynamicsoundfilters.config.reverb.enable"),
-								Config.getData().reverbFilter.enabled)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.enable.tooltip"))
-						.setDefaultValue(true).setSaveConsumer(b -> Config.getData().reverbFilter.enabled = b).build());
+								data.reverbFilter.enabled)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.enable.tooltip") )
+						.setDefaultValue(true).setSaveConsumer(b -> data.reverbFilter.enabled = b).build() );
 
 				reverbFilterCat.addEntry(entryBuilder
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.percent"),
-								Config.getData().reverbFilter.reverbPercent)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.percent.tooltip"))
+								data.reverbFilter.reverbPercent)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.percent.tooltip") )
 						.setDefaultValue(1.0f).setMin(0.0f).setMax(2.0f)
-						.setSaveConsumer(f -> Config.getData().reverbFilter.reverbPercent = f).build());
+						.setSaveConsumer(f -> data.reverbFilter.reverbPercent = f).build() );
 
 				reverbFilterCat.addEntry(entryBuilder
 						.startStrList(new TranslatableText("dynamicsoundfilters.config.reverb.dimensions"),
-								Config.getData().reverbFilter.dimensionBaseReverb)
+								data.reverbFilter.dimensionBaseReverb)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip1"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip2"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip3"),
-								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip4"))
-						.setDefaultValue(Arrays.asList("minecraft:the_nether;1.0")).setSaveConsumer(l -> {
-							Config.getData().reverbFilter.dimensionBaseReverb = l;
-							Config.getData().reverbFilter.recalculateCache();
-						}).build());
+								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip4") )
+						.setDefaultValue(Arrays.asList("minecraft:the_nether;1.0") ).setSaveConsumer(l -> {
+							data.reverbFilter.dimensionBaseReverb = l;
+							data.reverbFilter.recalculateCache();
+						}).build() );
 				reverbFilterCat.addEntry(entryBuilder
 						.startStrList(new TranslatableText("dynamicsoundfilters.config.reverb.blocks"),
-								Config.getData().reverbFilter.customBlockReverb)
+								data.reverbFilter.customBlockReverb)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip1"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip2"),
-								new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip3"))
-						.setDefaultValue(new ArrayList<>()).setSaveConsumer(l -> {
-							Config.getData().reverbFilter.customBlockReverb = l;
-							Config.getData().reverbFilter.recalculateCache();
-						}).build());
+								new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip3") )
+						.setDefaultValue(new ArrayList<>() ).setSaveConsumer(l -> {
+							data.reverbFilter.customBlockReverb = l;
+							data.reverbFilter.recalculateCache();
+						}).build() );
 
 				SubCategoryBuilder scannerCat = entryBuilder
-						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.reverb.scanner"));
-				scannerCat.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.scanner.tooltip"));
+						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.reverb.scanner") );
+				scannerCat.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.scanner.tooltip") );
 				{
 					scannerCat.add(entryBuilder
 							.startIntField(new TranslatableText("dynamicsoundfilters.config.reverb.scanner.blocks"),
-									Config.getData().reverbFilter.maxBlocks)
+									data.reverbFilter.maxBlocks)
 							.setTooltip(
-									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.blocks.tooltip"))
+									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.blocks.tooltip") )
 							.setDefaultValue(1024).setMin(0).setMax(Integer.MAX_VALUE)
-							.setSaveConsumer(i -> Config.getData().reverbFilter.maxBlocks = i).build());
+							.setSaveConsumer(i -> data.reverbFilter.maxBlocks = i).build() );
 
 					scannerCat.add(entryBuilder
 							.startBooleanToggle(
 									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.checksky"),
-									Config.getData().reverbFilter.checkSky)
+									data.reverbFilter.checkSky)
 							.setTooltip(
-									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.checksky.tooltip"))
-							.setDefaultValue(true).setSaveConsumer(b -> Config.getData().reverbFilter.checkSky = b)
-							.build());
+									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.checksky.tooltip") )
+							.setDefaultValue(true).setSaveConsumer(b -> data.reverbFilter.checkSky = b)
+							.build() );
 				}
-				reverbFilterCat.addEntry(scannerCat.build());
+				reverbFilterCat.addEntry(scannerCat.build() );
 
 				SubCategoryBuilder advancedCat = entryBuilder
-						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.reverb.advanced"));
-				advancedCat.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.tooltip"));
+						.startSubCategory(new TranslatableText("dynamicsoundfilters.config.reverb.advanced") );
+				advancedCat.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.tooltip") );
 				{
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.density"),
-									Config.getData().reverbFilter.density)
+									data.reverbFilter.density)
 							.setDefaultValue(0.2f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.density = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.density = f).build() );
 					advancedCat
 							.add(entryBuilder
 									.startFloatField(
 											new TranslatableText(
 													"dynamicsoundfilters.config.reverb.advanced.diffusion"),
-											Config.getData().reverbFilter.diffusion)
+											data.reverbFilter.diffusion)
 									.setDefaultValue(0.6f).setMin(0.0f).setMax(1.0f)
-									.setSaveConsumer(f -> Config.getData().reverbFilter.diffusion = f).build());
+									.setSaveConsumer(f -> data.reverbFilter.diffusion = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.gain"),
-									Config.getData().reverbFilter.gain)
+									data.reverbFilter.gain)
 							.setDefaultValue(0.15f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.gain = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.gain = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.gainhf"),
-									Config.getData().reverbFilter.gainHF)
+									data.reverbFilter.gainHF)
 							.setDefaultValue(0.8f).setMin(0.0f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.gainHF = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.gainHF = f).build() );
 					advancedCat
 							.add(entryBuilder
 									.startFloatField(
 											new TranslatableText(
 													"dynamicsoundfilters.config.reverb.advanced.mindecaytime"),
-											Config.getData().reverbFilter.minDecayTime)
+											data.reverbFilter.minDecayTime)
 									.setDefaultValue(0.1f).setMin(0.1f).setMax(20.0f)
-									.setSaveConsumer(f -> Config.getData().reverbFilter.minDecayTime = f).build());
+									.setSaveConsumer(f -> data.reverbFilter.minDecayTime = f).build() );
 					advancedCat
 							.add(entryBuilder
 									.startFloatField(
 											new TranslatableText(
 													"dynamicsoundfilters.config.reverb.advanced.decayhfratio"),
-											Config.getData().reverbFilter.decayHFRatio)
+											data.reverbFilter.decayHFRatio)
 									.setDefaultValue(0.7f).setMin(0.1f).setMax(20.0f)
-									.setSaveConsumer(f -> Config.getData().reverbFilter.decayHFRatio = f).build());
+									.setSaveConsumer(f -> data.reverbFilter.decayHFRatio = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.airabsorptiongainhf"),
-									Config.getData().reverbFilter.airAbsorptionGainHF)
+									data.reverbFilter.airAbsorptionGainHF)
 							.setDefaultValue(0.99f).setMin(0.892f).setMax(1.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.airAbsorptionGainHF = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.airAbsorptionGainHF = f).build() );
 
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsgainbase"),
-									Config.getData().reverbFilter.reflectionsGainBase)
+									data.reverbFilter.reflectionsGainBase)
 							.setDefaultValue(0.05f).setMin(0.0f).setMax(1.58f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.reflectionsGainBase = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.reflectionsGainBase = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsgainmultiplier"),
-									Config.getData().reverbFilter.reflectionsGainMultiplier)
+									data.reverbFilter.reflectionsGainMultiplier)
 							.setDefaultValue(0.05f).setMin(0.0f).setMax(1.58f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.reflectionsGainMultiplier = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.reflectionsGainMultiplier = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsdelaymultiplier"),
-									Config.getData().reverbFilter.reflectionsDelayMultiplier)
+									data.reverbFilter.reflectionsDelayMultiplier)
 							.setDefaultValue(0.025f).setMin(0.0f).setMax(0.3f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.reflectionsDelayMultiplier = f)
-							.build());
+							.setSaveConsumer(f -> data.reverbFilter.reflectionsDelayMultiplier = f)
+							.build() );
 
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbgainbase"),
-									Config.getData().reverbFilter.lateReverbGainBase)
+									data.reverbFilter.lateReverbGainBase)
 							.setDefaultValue(1.26f).setMin(0.0f).setMax(5.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.lateReverbGainBase = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.lateReverbGainBase = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbgainmultiplier"),
-									Config.getData().reverbFilter.lateReverbGainMultiplier)
+									data.reverbFilter.lateReverbGainMultiplier)
 							.setDefaultValue(0.1f).setMin(0.0f).setMax(5.0f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.lateReverbGainMultiplier = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.lateReverbGainMultiplier = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbdelaymultiplier"),
-									Config.getData().reverbFilter.lateReverbDelayMultiplier)
+									data.reverbFilter.lateReverbDelayMultiplier)
 							.setDefaultValue(0.01f).setMin(0.0f).setMax(0.1f)
-							.setSaveConsumer(f -> Config.getData().reverbFilter.lateReverbDelayMultiplier = f).build());
+							.setSaveConsumer(f -> data.reverbFilter.lateReverbDelayMultiplier = f).build() );
 				}
-				reverbFilterCat.addEntry(advancedCat.build());
+				reverbFilterCat.addEntry(advancedCat.build() );
 			}
 
 			ConfigCategory obstructionFilterCat = builder
-					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.obstruction"));
+					.getOrCreateCategory(new TranslatableText("dynamicsoundfilters.config.obstruction") );
 			{
 				obstructionFilterCat.addEntry(entryBuilder
 						.startBooleanToggle(new TranslatableText("dynamicsoundfilters.config.obstruction.enable"),
-								Config.getData().obstructionFilter.enabled)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.enable.tooltip"))
-						.setDefaultValue(true).setSaveConsumer(b -> Config.getData().obstructionFilter.enabled = b)
-						.build());
+								data.obstructionFilter.enabled)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.enable.tooltip") )
+						.setDefaultValue(true).setSaveConsumer(b -> data.obstructionFilter.enabled = b)
+						.build() );
 
 				obstructionFilterCat.addEntry(entryBuilder
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.obstruction.step"),
-								Config.getData().obstructionFilter.obstructionStep)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.step.tooltip"))
+								data.obstructionFilter.obstructionStep)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.step.tooltip") )
 						.setDefaultValue(0.1f).setMin(0.0f).setMax(1.0f)
-						.setSaveConsumer(f -> Config.getData().obstructionFilter.obstructionStep = f).build());
+						.setSaveConsumer(f -> data.obstructionFilter.obstructionStep = f).build() );
 				obstructionFilterCat.addEntry(entryBuilder
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.obstruction.max"),
-								Config.getData().obstructionFilter.obstructionMax)
-						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.max.tooltip"))
+								data.obstructionFilter.obstructionMax)
+						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.max.tooltip") )
 						.setDefaultValue(0.98f).setMin(0.0f).setMax(1.0f)
-						.setSaveConsumer(f -> Config.getData().obstructionFilter.obstructionMax = f).build());
+						.setSaveConsumer(f -> data.obstructionFilter.obstructionMax = f).build() );
 			}
 
 			return builder.build();

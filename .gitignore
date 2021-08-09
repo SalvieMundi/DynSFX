@@ -28,3 +28,9 @@ bin/
 
 run/
 remappedSrc/
+
+# vim/ other unix backups
+
+.vim/
+*.bkp
+*~

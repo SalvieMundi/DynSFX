@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "dynamicsoundfilters",
+  "id": "dynsfx",
   "version": "${version}",
-  "name": "Dynamic Sound Filters",
-  "description": "Adds dynamic sound filters such as reverb in caves or muffled underwater sounds",
+  "name": "DynSFX",
+  "description": "Adds reverb (TODO: reverse reverb) and (TODO: echo) in caves/ravines, muffled underwater sounds, and sound dampening behind walls, all configurable.",
   "authors": [
-    "andre111"
+    "andre111",
+    "MikenRafter"
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/dynamic-sound-filters",
@@ -27,8 +28,8 @@
   ],
   "depends": {
     "fabricloader": ">=0.11.6",
-    "fabric": ">=0.37.0",
-    "minecraft": "1.17.1"
+    "fabric": ">=0.36.0",
+    "minecraft": ">=1.17.0"
   },
   "suggests": {
     "modmenu": "*"

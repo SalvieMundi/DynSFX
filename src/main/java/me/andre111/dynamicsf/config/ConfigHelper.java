@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 André Schweiger
+ * Copyright (c) 2021 Andr? Schweiger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ public class ConfigHelper {
 	public static <K, V> Map<K, V> parseToMap(List<String> entries, Function<String, K> keyParser, Function<String, V> valueParser) {
 		Map<K, V> map = new HashMap<>();
 		
-		if(entries != null) {
+		if (entries != null) {
 			for(String entry : entries) {
 				try {
-					if(entry == null) throw new RuntimeException();
+					if (entry == null) throw new RuntimeException();
 					String[] split = entry.split(";");
-					if(split.length != 2) throw new RuntimeException();
+					if (split.length != 2) throw new RuntimeException();
 					
 					K key = keyParser.apply(split[0]);
 					V value = valueParser.apply(split[1]);
@@ -49,12 +49,12 @@ public class ConfigHelper {
 	}
 	
 	public static <K> Set<K> parseToSet(List<String> entries, Function<String, K> keyParser) {
-		Set<K> set = Collections.newSetFromMap(new HashMap<>());
+		Set<K> set = Collections.newSetFromMap(new HashMap<>() );
 		
-		if(entries != null) {
+		if (entries != null) {
 			for(String entry : entries) {
 				try {
-					if(entry == null) throw new RuntimeException();
+					if (entry == null) throw new RuntimeException();
 					
 					K key = keyParser.apply(entry);
 					
