@@ -28,8 +28,8 @@ public class ConfigDataGeneral {
 			"minecraft:music.end", "minecraft:music.game", "minecraft:music.menu", "minecraft:music.nether.basalt_deltas",
 			"minecraft:music.nether.nether_wastes", "minecraft:music.nether.soul_sand_valley", "minecraft:music.nether.crimson_forest",
 			"minecraft:music.nether.warped_forest", "minecraft:music.under_water",
-			// causes MASSIVE lag, if not ignored
-			// NOTE: different than rain_above
+			// they cause MASSIVE lag, if not ignored
+			"minecraft:block.lava.pop",
 			"minecraft:weather.rain",
 			// personally I like button noises to have echo & reverb when
 			// appropriate (caves), but not everyone will appreciate this
