@@ -26,7 +26,7 @@ Forked from https://gitlab.com/binero/minecraft-dynamic-sound-filters (then opti
 
 ### Known issues:
 1. lag in nether, this' due to the reverb method being imperformant, I've some ideas as to how to fix
-2. inacurrate to real life ( / percieved scale relative to minecraft) reverb effect
+2. inacurrate to real life ( / percieved scale relative to minecraft) reverb effect  
 These two may be fixed in the next release
 
 3. no echo
