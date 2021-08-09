@@ -1,5 +1,7 @@
-A fabric mod offering: realistic(-ish) Minecraft sound filters and effects.
-Forked from https://gitlab.com/binero/minecraft-dynamic-sound-filters (then optimized for better FPS + TPS)
+A fabric mod offering: realistic(-ish) Minecraft sound filters and effects.  
+Forked from https://gitlab.com/binero/minecraft-dynamic-sound-filters (then optimized for better FPS + TPS)  
+
+download [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/releases)
 
 ---
 
