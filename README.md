@@ -37,7 +37,8 @@ These may take longer.
 
 ### Known non-issues:
 1. delay for applying effects
-> This' to keep your FPS and TPS running smoothly.  
+> NOTE: This' only noticable when moving extremely fast-ingame.
+> This keeps your FPS and TPS running smoother.  
 > If you wish to remove this ~50ms delay in effect accuracy updates, please modify:
 
 `src/main/java/me/andre111/dynamicsf/FilterManager.java`   LN:40  
