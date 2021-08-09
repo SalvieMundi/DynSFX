@@ -43,7 +43,7 @@ public class FilterManager {
 			// That, is the boolean condition.
 			verdict = !(client.world == null || client.player == null);
 			// if worth updating, then do so
-			if (verdict) {
+			if (verdict && client.isRunning()) {
 				// get player's head/ears position
 				clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
 				// get config states
