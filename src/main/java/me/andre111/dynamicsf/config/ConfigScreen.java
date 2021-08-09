@@ -15,6 +15,10 @@
  */
 package me.andre111.dynamicsf.config;
 
+import me.andre111.dynamicsf.config.ConfigDataLiquid;
+import me.andre111.dynamicsf.config.ConfigDataObstruction;
+import me.andre111.dynamicsf.config.ConfigDataReverb;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -26,10 +30,17 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.minecraft.text.TranslatableText;
 
+// should probably abstract this stuff, eh, later!
+// use this:
+// import java.util.function.Function;
+
 public class ConfigScreen implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
 		ConfigData data = Config.getData();
+		ConfigDataLiquid liquid = new ConfigDataLiquid();
+		ConfigDataObstruction obstruction = new ConfigDataObstruction();
+		ConfigDataReverb reverb = new ConfigDataReverb();
 		return parent -> {
 			ConfigBuilder builder = ConfigBuilder.create();
 			builder.setParentScreen(parent);
@@ -67,13 +78,15 @@ public class ConfigScreen implements ModMenuApi {
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gain"),
 									data.liquidFilter.waterGain)
 							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip") )
-							.setDefaultValue(0.8f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(liquid.getWaterGain()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.liquidFilter.waterGain = f).build() );
 					waterCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf"),
 									data.liquidFilter.waterGainHF)
 							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip") )
-							.setDefaultValue(0.3f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(liquid.getWaterGainHF()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.liquidFilter.waterGainHF = f).build() );
 				}
 				liquidFilterCat.addEntry(waterCat.build() );
@@ -85,13 +98,15 @@ public class ConfigScreen implements ModMenuApi {
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gain"),
 									data.liquidFilter.lavaGain)
 							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gain.tooltip") )
-							.setDefaultValue(0.5f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(liquid.getLavaGain()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.liquidFilter.lavaGain = f).build() );
 					lavaCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf"),
 									data.liquidFilter.lavaGainHF)
 							.setTooltip(new TranslatableText("dynamicsoundfilters.config.liquid.gainhf.tooltip") )
-							.setDefaultValue(0.1f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(liquid.getLavaGainHF()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.liquidFilter.lavaGainHF = f).build() );
 				}
 				liquidFilterCat.addEntry(lavaCat.build() );
@@ -110,7 +125,8 @@ public class ConfigScreen implements ModMenuApi {
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.percent"),
 								data.reverbFilter.reverbPercent)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.percent.tooltip") )
-						.setDefaultValue(1.0f).setMin(0.0f).setMax(2.0f)
+						// defaults
+						.setDefaultValue(reverb.getReverbPercent()).setMin(0f).setMax(2f)
 						.setSaveConsumer(f -> data.reverbFilter.reverbPercent = f).build() );
 
 				reverbFilterCat.addEntry(entryBuilder
@@ -120,7 +136,9 @@ public class ConfigScreen implements ModMenuApi {
 								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip2"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip3"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.dimensions.tooltip4") )
-						.setDefaultValue(Arrays.asList("minecraft:the_nether;1.0") ).setSaveConsumer(l -> {
+						// defaults
+						// did I do it right?
+						.setDefaultValue( reverb.getDimensionBaseReverb() ).setSaveConsumer(l -> {
 							data.reverbFilter.dimensionBaseReverb = l;
 							data.reverbFilter.recalculateCache();
 						}).build() );
@@ -130,6 +148,7 @@ public class ConfigScreen implements ModMenuApi {
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip1"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip2"),
 								new TranslatableText("dynamicsoundfilters.config.reverb.blocks.tooltip3") )
+						// defaults
 						.setDefaultValue(new ArrayList<>() ).setSaveConsumer(l -> {
 							data.reverbFilter.customBlockReverb = l;
 							data.reverbFilter.recalculateCache();
@@ -144,7 +163,8 @@ public class ConfigScreen implements ModMenuApi {
 									data.reverbFilter.maxBlocks)
 							.setTooltip(
 									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.blocks.tooltip") )
-							.setDefaultValue(1024).setMin(0).setMax(Integer.MAX_VALUE)
+							// defaults
+							.setDefaultValue(reverb.getMaxBlocks()).setMin(0).setMax(Integer.MAX_VALUE)
 							.setSaveConsumer(i -> data.reverbFilter.maxBlocks = i).build() );
 
 					scannerCat.add(entryBuilder
@@ -153,7 +173,8 @@ public class ConfigScreen implements ModMenuApi {
 									data.reverbFilter.checkSky)
 							.setTooltip(
 									new TranslatableText("dynamicsoundfilters.config.reverb.scanner.checksky.tooltip") )
-							.setDefaultValue(true).setSaveConsumer(b -> data.reverbFilter.checkSky = b)
+							// defaults
+							.setDefaultValue(reverb.getCheckSky()).setSaveConsumer(b -> data.reverbFilter.checkSky = b)
 							.build() );
 				}
 				reverbFilterCat.addEntry(scannerCat.build() );
@@ -165,7 +186,8 @@ public class ConfigScreen implements ModMenuApi {
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.density"),
 									data.reverbFilter.density)
-							.setDefaultValue(0.2f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(reverb.getDensity()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.reverbFilter.density = f).build() );
 					advancedCat
 							.add(entryBuilder
@@ -178,12 +200,14 @@ public class ConfigScreen implements ModMenuApi {
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.gain"),
 									data.reverbFilter.gain)
-							.setDefaultValue(0.15f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(reverb.getGain()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.reverbFilter.gain = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(new TranslatableText("dynamicsoundfilters.config.reverb.advanced.gainhf"),
 									data.reverbFilter.gainHF)
-							.setDefaultValue(0.8f).setMin(0.0f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(reverb.getGainHF()).setMin(0f).setMax(1f)
 							.setSaveConsumer(f -> data.reverbFilter.gainHF = f).build() );
 					advancedCat
 							.add(entryBuilder
@@ -191,7 +215,8 @@ public class ConfigScreen implements ModMenuApi {
 											new TranslatableText(
 													"dynamicsoundfilters.config.reverb.advanced.mindecaytime"),
 											data.reverbFilter.minDecayTime)
-									.setDefaultValue(0.1f).setMin(0.1f).setMax(20.0f)
+									// defaults
+									.setDefaultValue(reverb.getMinDecayTime()).setMin(0.1f).setMax(20f)
 									.setSaveConsumer(f -> data.reverbFilter.minDecayTime = f).build() );
 					advancedCat
 							.add(entryBuilder
@@ -199,14 +224,16 @@ public class ConfigScreen implements ModMenuApi {
 											new TranslatableText(
 													"dynamicsoundfilters.config.reverb.advanced.decayhfratio"),
 											data.reverbFilter.decayHFRatio)
-									.setDefaultValue(0.7f).setMin(0.1f).setMax(20.0f)
+									// defaults
+									.setDefaultValue(reverb.getDecayHFRatio()).setMin(0.1f).setMax(20f)
 									.setSaveConsumer(f -> data.reverbFilter.decayHFRatio = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.airabsorptiongainhf"),
 									data.reverbFilter.airAbsorptionGainHF)
-							.setDefaultValue(0.99f).setMin(0.892f).setMax(1.0f)
+							// defaults
+							.setDefaultValue(reverb.getAirAbsorptionGainHF()).setMin(0.892f).setMax(1f)
 							.setSaveConsumer(f -> data.reverbFilter.airAbsorptionGainHF = f).build() );
 
 					advancedCat.add(entryBuilder
@@ -214,21 +241,24 @@ public class ConfigScreen implements ModMenuApi {
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsgainbase"),
 									data.reverbFilter.reflectionsGainBase)
-							.setDefaultValue(0.05f).setMin(0.0f).setMax(1.58f)
+							// defaults
+							.setDefaultValue(reverb.getReflectionsGainBase()).setMin(0f).setMax(1.58f)
 							.setSaveConsumer(f -> data.reverbFilter.reflectionsGainBase = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsgainmultiplier"),
 									data.reverbFilter.reflectionsGainMultiplier)
-							.setDefaultValue(0.05f).setMin(0.0f).setMax(1.58f)
+							// defaults
+							.setDefaultValue(reverb.getReflectionsGainMultiplier()).setMin(0f).setMax(1.58f)
 							.setSaveConsumer(f -> data.reverbFilter.reflectionsGainMultiplier = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.reflectionsdelaymultiplier"),
 									data.reverbFilter.reflectionsDelayMultiplier)
-							.setDefaultValue(0.025f).setMin(0.0f).setMax(0.3f)
+							// defaults
+							.setDefaultValue(reverb.getReflectionsDelayMultiplier()).setMin(0f).setMax(0.3f)
 							.setSaveConsumer(f -> data.reverbFilter.reflectionsDelayMultiplier = f)
 							.build() );
 
@@ -237,21 +267,24 @@ public class ConfigScreen implements ModMenuApi {
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbgainbase"),
 									data.reverbFilter.lateReverbGainBase)
-							.setDefaultValue(1.26f).setMin(0.0f).setMax(5.0f)
+							// defaults
+							.setDefaultValue(reverb.getLateReverbGainBase()).setMin(0f).setMax(5f)
 							.setSaveConsumer(f -> data.reverbFilter.lateReverbGainBase = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbgainmultiplier"),
 									data.reverbFilter.lateReverbGainMultiplier)
-							.setDefaultValue(0.1f).setMin(0.0f).setMax(5.0f)
+							// defaults
+							.setDefaultValue(reverb.getLateReverbGainMultiplier()).setMin(0f).setMax(5f)
 							.setSaveConsumer(f -> data.reverbFilter.lateReverbGainMultiplier = f).build() );
 					advancedCat.add(entryBuilder
 							.startFloatField(
 									new TranslatableText(
 											"dynamicsoundfilters.config.reverb.advanced.latereverbdelaymultiplier"),
 									data.reverbFilter.lateReverbDelayMultiplier)
-							.setDefaultValue(0.01f).setMin(0.0f).setMax(0.1f)
+							// defaults
+							.setDefaultValue(reverb.getLateReverbDelayMultiplier()).setMin(0f).setMax(0.1f)
 							.setSaveConsumer(f -> data.reverbFilter.lateReverbDelayMultiplier = f).build() );
 				}
 				reverbFilterCat.addEntry(advancedCat.build() );
@@ -264,20 +297,23 @@ public class ConfigScreen implements ModMenuApi {
 						.startBooleanToggle(new TranslatableText("dynamicsoundfilters.config.obstruction.enable"),
 								data.obstructionFilter.enabled)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.enable.tooltip") )
-						.setDefaultValue(true).setSaveConsumer(b -> data.obstructionFilter.enabled = b)
+						// defaults
+						.setDefaultValue(reverb.getEnabled()).setSaveConsumer(b -> data.obstructionFilter.enabled = b)
 						.build() );
 
 				obstructionFilterCat.addEntry(entryBuilder
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.obstruction.step"),
 								data.obstructionFilter.obstructionStep)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.step.tooltip") )
-						.setDefaultValue(0.1f).setMin(0.0f).setMax(1.0f)
+						// defaults
+						.setDefaultValue(obstruction.getObstructionStep()).setMin(0f).setMax(1f)
 						.setSaveConsumer(f -> data.obstructionFilter.obstructionStep = f).build() );
 				obstructionFilterCat.addEntry(entryBuilder
 						.startFloatField(new TranslatableText("dynamicsoundfilters.config.obstruction.max"),
 								data.obstructionFilter.obstructionMax)
 						.setTooltip(new TranslatableText("dynamicsoundfilters.config.obstruction.max.tooltip") )
-						.setDefaultValue(0.98f).setMin(0.0f).setMax(1.0f)
+						// defaults
+						.setDefaultValue(obstruction.getObstructionMax()).setMin(0f).setMax(1f)
 						.setSaveConsumer(f -> data.obstructionFilter.obstructionMax = f).build() );
 			}
 

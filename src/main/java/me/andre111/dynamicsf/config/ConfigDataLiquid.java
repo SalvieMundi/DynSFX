@@ -23,4 +23,24 @@ public class ConfigDataLiquid {
 	
 	public float lavaGain = 0.3f;
 	public float lavaGainHF = 0.1f;
+
+	public boolean getEnabled() {
+		return enabled;
+	}
+
+	public float getWaterGain() {
+		return waterGain;
+	}
+
+	public float getWaterGainHF() {
+		return waterGainHF;
+	}
+
+	public float getLavaGain() {
+		return lavaGain;
+	}
+
+	public float getLavaGainHF() {
+		return lavaGainHF;
+	}
 }

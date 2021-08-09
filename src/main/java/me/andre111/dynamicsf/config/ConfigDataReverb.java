@@ -28,14 +28,15 @@ import net.minecraft.util.Identifier;
 public class ConfigDataReverb {
 	public boolean enabled = true;
 	
-	public float reverbPercent = 1.0f;
+	public float reverbPercent = 1f;
 	
 	public int maxBlocks = 1024;
 	public boolean checkSky = true;
 	
 	public List<String> dimensionBaseReverb = Arrays.asList("minecraft:the_nether;1.0");
 	public List<String> customBlockReverb = new ArrayList<>();
-	
+
+	// Are these accurate? More research's needed.
 	public float density = 0.2f;
 	public float diffusion = 0.6f;
 	public float gain = 0.15f;
@@ -84,5 +85,83 @@ public class ConfigDataReverb {
 		calculateCache();
 		
 		return customBlockReverbMap.get(block);
+	}
+
+	// please, someone tell me that there's a better way to do this in java :/
+
+	public boolean getEnabled() {
+		return enabled;
+	}
+
+	public float getReverbPercent() {
+		return reverbPercent;
+	}
+
+	public int getMaxBlocks() {
+		return maxBlocks;
+	}
+
+	public boolean getCheckSky() {
+		return checkSky;
+	}
+
+	public List<String> getDimensionBaseReverb() {
+		return dimensionBaseReverb;
+	}
+
+	public List<String> getCustomBlockReverb() {
+		return customBlockReverb;
+	}
+
+	public float getDensity() {
+		return density;
+	}
+
+	public float getDiffusion() {
+		return diffusion;
+	}
+
+	public float getGain() {
+		return gain;
+	}
+
+	public float getGainHF() {
+		return gainHF;
+	}
+
+	public float getMinDecayTime() {
+		return minDecayTime;
+	}
+
+	public float getDecayHFRatio() {
+		return decayHFRatio;
+	}
+
+	public float getAirAbsorptionGainHF() {
+		return airAbsorptionGainHF;
+	}
+
+	public float getReflectionsGainBase() {
+		return reflectionsGainBase;
+	}
+
+	public float getReflectionsGainMultiplier() {
+		return reflectionsGainMultiplier;
+	}
+
+	public float getReflectionsDelayMultiplier() {
+		return reflectionsDelayMultiplier;
+	}
+
+	public float getLateReverbGainBase() {
+		return lateReverbGainBase;
+	}
+
+	public float getLateReverbGainMultiplier() {
+		return lateReverbGainMultiplier;
+	}
+
+	public float getLateReverbDelayMultiplier() {
+		return lateReverbDelayMultiplier;
 	}
 }

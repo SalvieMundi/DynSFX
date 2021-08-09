@@ -20,4 +20,16 @@ public class ConfigDataObstruction {
 	
 	public float obstructionStep = 0.1f;
 	public float obstructionMax = 0.98f;
+
+	public boolean getEnabled() {
+		return enabled;
+	}
+
+	public float getObstructionStep() {
+		return obstructionStep;
+	}
+
+	public float getObstructionMax() {
+		return obstructionMax;
+	}
 }
