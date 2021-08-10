@@ -136,7 +136,9 @@ public class Obstruction {
 		final float obstructionMax = data.obstructionFilter.obstructionMax;
 		
 		// get positions
-		final Vec3d soundPos = new Vec3d(soundInstance.getX(), soundInstance.getY(), soundInstance.getZ() );
+		// .3f is for adjusting player footstep volume down cheap stairs
+		// (realism tweak)
+		final Vec3d soundPos = new Vec3d(soundInstance.getX(), soundInstance.getY() + 0.3f, soundInstance.getZ() );
 		Vec3d currentPos = soundPos;
 		// validation wasn't necessary!
 		BlockPos.Mutable currentPosInt = new BlockPos.Mutable(soundPos.x, soundPos.y, soundPos.z);
