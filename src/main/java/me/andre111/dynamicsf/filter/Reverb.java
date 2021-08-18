@@ -26,6 +26,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.mojang.datafixers.util.Pair;
+
 import org.lwjgl.openal.EXTEfx;
 
 import net.minecraft.block.BlockState;
@@ -33,12 +35,15 @@ import net.minecraft.block.Material;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.Identifier;
+import net.minecraft.tag.Tag.Identified;
+//import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
+//import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.chunk.Chunk;
 
@@ -47,10 +52,11 @@ public class Reverb {
 	private static int slot = -1;
 
 	private static boolean enabled = false;
-	private static int tickCount = 0;
-	private static float prevDecayFactor = 0.0f;
-	private static float prevRoomFactor = 0.0f;
-	private static float prevSkyFactor = 0.0f;
+	private static boolean checkSky = true;
+	private static int ticks = 0;
+	private static float prevDecayFactor = 0f;
+	private static float prevRoomFactor = 0f;
+	private static float prevSkyFactor = 0f;
 
 	private static float density = 0.2f;
 	private static float diffusion = 0.6f;
@@ -58,13 +64,32 @@ public class Reverb {
 	private static float gainHF = 0.8f;
 	private static float decayTime = 0.1f;
 	private static float decayHFRatio = 0.7f;
-	private static float reflectionsGain = 0.0f;
-	private static float reflectionsDelay = 0.0f;
-	private static float lateReverbGain = 0.0f;
-	private static float lateReverbDelay = 0.0f;
+	private static float reflectionsGain = 0f;
+	private static float reflectionsDelay = 0f;
+	private static float lateReverbGain = 0f;
+	private static float lateReverbDelay = 0f;
 	private static float airAbsorptionGainHF = 0.99f;
-	private static float roomRolloffFactor = 0.0f;
+	private static float roomRolloffFactor = 0f;
 	private static int decayHFLimit = 1;
+
+	private static final int[] scanSizes = new int[] {30, 100, 30, 10, 30};
+	// skip direction.up, use checkSky for that
+	private static final Direction[] validationOffsets = new Direction[] { Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+	// 
+	private static final Vec3d initPoint = new Vec3d(0d, 0d, 1d).rotateX(-22.5f);
+
+	private static Vec3d tracer = initPoint;
+	private static float sky = 0;
+
+
+	// TODO: move this into settings update calculations
+	// min: 1, max: 6
+	// final int quality = data.reverbFilter.quality;
+	private static int quality = 4; // mid - 64
+	//	list of
+	//		surface location + list of
+	// 			blockID + material
+	private static List<Pair<BlockPos,List<Pair<Identifier,Material>>>> surfaces = new ArrayList<>();
 	
 	//TODO: configurable
 	private static List<Material> HIGH_REVERB_MATERIALS = Arrays.asList(Material.STONE, Material.GLASS, Material.ICE, Material.DENSE_ICE, Material.METAL);
@@ -81,12 +106,13 @@ public class Reverb {
 	}
 
 	public static boolean updateSoundInstance(final SoundInstance soundInstance) {
+		// if not needed, exit
+		if (!enabled || reflectionsDelay + lateReverbDelay <= 0 ) return false;
+
 		// ensure sound id is valid
 		if (id == -1) {
 			reinit();
 		}
-		// if not needed, exit
-		if (!enabled || reflectionsDelay + lateReverbDelay <= 0 ) return false;
 
 		if (soundInstance.getAttenuationType() == SoundInstance.AttenuationType.LINEAR) {
 			roomRolloffFactor = 2f / (Math.max(soundInstance.getVolume(), 1f) + 2f);
@@ -147,90 +173,155 @@ public class Reverb {
 		lateReverbDelay = 0;
 		airAbsorptionGainHF = data.reverbFilter.airAbsorptionGainHF;
 		roomRolloffFactor = 0.0f;
+
+		tracer = initPoint;
+		sky = 0;
 	}
 
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		enabled = data.reverbFilter.enabled;
-		final int maxBlocks = data.reverbFilter.maxBlocks;
-		final boolean checkSky = data.reverbFilter.checkSky;
-		final float reverbPercent = data.reverbFilter.reverbPercent;
-		final float minDecayTime = data.reverbFilter.minDecayTime;
-		final float reflectionGainBase = data.reverbFilter.reflectionsGainBase;
-		final float reflectionGainMultiplier = data.reverbFilter.reflectionsGainMultiplier;
-		final float reflectionDelayMultiplier = data.reverbFilter.reflectionsDelayMultiplier;
-		final float lateReverbGainBase = data.reverbFilter.lateReverbGainBase;
-		final float lateReverbGainMultiplier = data.reverbFilter.lateReverbGainMultiplier;
-		final float lateReverbDelayMultiplier = data.reverbFilter.lateReverbDelayMultiplier;
+		if (!enabled) return;
 
-		// get base reverb
-		final Identifier dimension = client.world.getRegistryKey().getValue();
-		float decayFactor = data.reverbFilter.getDimensionBaseReverb(dimension);
+		// split up scanning over multiple ticks
+		if (ticks < 16) {
 
-		if (enabled && tickCount++ == 20) {
-			tickCount = 0;
+			// how many steps to take at max
+			final int range = scanSizes[(int) ticks / 4];
+			// make a mutable (non-final) variant of clientPos
+			Vec3d pos = clientPos;
+			BlockPos blockPos = new BlockPos(pos);
+			boolean foundSurface = false;
 
-			// scan surroundings
-			final BlockPos playerPos = new BlockPos(clientPos);
+			// move level changer here?
 
-			// initialize sample variables
-			Random random = new Random();
-			Set<BlockPos> visited = new TreeSet<>();
-			List<BlockState> blocksFound = new ArrayList<>();
-			List<BlockPos> toVisit = new LinkedList<>();
+			// raycast
+			for (int steps = 0; steps < range; steps++) {
+				blockPos = new BlockPos(pos);
+				// final BlockState blockState = client.world.getBlockState(blockPos);
+				// if full block here
+				if ( client.world.getBlockState(blockPos).isFullCube(client.world, blockPos) ) {
+					foundSurface = true;
+					break;
+				// if found still fluid, it's a body of water, stop looping
+				} else if ( client.world.getFluidState(blockPos).isStill() ) break;
+				// otherwise, move along
+				pos = pos.add(tracer);
 
-			// sample random blocks in surroundings
-			toVisit.add(playerPos);
-			for (int i = 0; i < maxBlocks && !toVisit.isEmpty(); ++i) {
-				final BlockPos current = toVisit.remove(random.nextInt(toVisit.size() ));
-				visited.add(current);
-				for(Direction direction : Direction.values() ) {
-					final BlockPos pos = current.offset(direction);
-					final BlockState blockState = client.world.getBlockState(pos);
-					final Material material = blockState.getMaterial();
-					if (!material.blocksMovement() ) {
-						if (!visited.contains(pos) && !toVisit.contains(pos) ) {
-							toVisit.add(pos);
+				// check sky access every 5 blocks, starting at 1
+				if ( checkSky && steps % 5 == 1 && hasSkyAbove(client.world, blockPos) ) sky++;
+			}
+
+			// if something was hit, then gather information about it
+			if (foundSurface) {
+				// detect if it's a real surface, not a fickle obstruction
+				int surface = 0;
+				// check surrounding blocks
+				for (Direction direction : validationOffsets) {
+					// copy, then move the position in _ direction
+					BlockPos bPos = blockPos.offset(direction, 1);
+					if (client.world.getBlockState(bPos).isFullCube(client.world, bPos)) surface++;
+				}
+
+				// if there's at least 3 other blocks on the surface, then
+				// consider it a reverb point
+				if (surface >= 3) {
+					// take note of surfaces
+					List<Pair<Identifier,Material>> materials = new ArrayList<>();
+
+					// haskell formatting go brr
+					final Vec3d halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
+					// move box bounds negative, so that surface spot is the center
+					pos = pos.subtract(halfBox);
+					// main calculation
+					// n^3 - I wonder if there's any way to reduce this
+					// to at least log(3n)
+					for (double x = 0; x < quality; x++) {
+						for (double z = 0; z < quality; z++) {
+							// loop through y first, less likely to need to
+							// get a different blockstate, resulting (I think)
+							// in better memory usage
+							for (double y = 0; y < quality; y++) {
+								// get information
+								final BlockState blockState = client.world.getBlockState(new BlockPos(pos.add(x, y, z)));
+								final Material material = blockState.getMaterial();
+								final Identifier blockID = Registry.BLOCK.getId(blockState.getBlock());
+								// if block could reverb, and is solid, await calculations
+								if (
+									material.blocksMovement() ||
+									!( material == Material.AIR
+									|| material == Material.WATER
+									|| material == Material.LAVA
+									) ) materials.add(new Pair<>(blockID, material));
+							}
 						}
-						if (!blockState.isAir() && material != Material.WATER && material != Material.LAVA) {
-							blocksFound.add(blockState);
-						}
-					} else {
-						blocksFound.add(blockState);
 					}
+					surfaces.add(new Pair<>(blockPos, materials));
 				}
 			}
 
-			// calculate decay factor
+			// move to the next cardinal direction
+			tracer.rotateY(90);
+			// after 1, every 4 ticks move up 1 level
+			if (++ticks % 4 == 0) tracer.rotateX(22.5f);
+
+		} else if (ticks < 20) {
+			ticks++;
+		} else {
+			ticks = 0;
+			tracer = initPoint;
+			
+			checkSky = data.reverbFilter.checkSky;
+
+			final float reverbPercent = data.reverbFilter.reverbPercent;
+			final float minDecayTime = data.reverbFilter.minDecayTime;
+			final float reflectionGainBase = data.reverbFilter.reflectionsGainBase;
+			final float reflectionGainMultiplier = data.reverbFilter.reflectionsGainMultiplier;
+			final float reflectionDelayMultiplier = data.reverbFilter.reflectionsDelayMultiplier;
+			final float lateReverbGainBase = data.reverbFilter.lateReverbGainBase;
+			final float lateReverbGainMultiplier = data.reverbFilter.lateReverbGainMultiplier;
+			final float lateReverbDelayMultiplier = data.reverbFilter.lateReverbDelayMultiplier;
+
+			// get base reverb
+			float decayFactor = 0f;
 			double highReverb = 0d;
-			double midReverb = 0d;
-			double lowReverb = 0d;
-			for (BlockState blockState : blocksFound) {
-				// custom block reverb overrides
-				final ReverbInfo customReverb = data.reverbFilter.getCustomBlockReverb(Registry.BLOCK.getId(blockState.getBlock() ));
-				if (customReverb != null) {
-					switch(customReverb) {
-					case HIGH:
-						highReverb += 1;
-						break;
-					case LOW:
-						lowReverb += 1;
-						break;
-					case MID:
-					default:
-						midReverb += 1;
-						break;
-					}
-				} else {
-					// material based reverb
-					if (HIGH_REVERB_MATERIALS.contains(blockState.getMaterial() )) {
-						highReverb += 1;
-					} else if (LOW_REVERB_MATERIALS.contains(blockState.getMaterial() )) {
-						lowReverb += 1;
+			double midReverb  = 0d;
+			double lowReverb  = 0d;
+
+			try {
+				decayFactor = data.reverbFilter.getDimensionBaseReverb(
+					client.world.getRegistryKey().getValue() );
+			} catch (NullPointerException e) {
+				surfaces = new ArrayList<>();
+				return; // if no client.world
+			}
+
+			// loop through surfaces
+			for (Pair<BlockPos,List<Pair<Identifier,Material>>> surface : surfaces ) {
+				// get surface materials
+				final List<Pair<Identifier,Material>> stats = surface.getSecond();
+				// loop through materials
+				for (Pair<Identifier,Material> block : stats) {
+					// custom block reverb overrides
+					final ReverbInfo customReverb = data.reverbFilter.getCustomBlockReverb( block.getFirst() );
+					// calculate reverbage
+					if (customReverb == null) {
+						// material based reverb
+						if (HIGH_REVERB_MATERIALS.contains( block.getSecond() )) highReverb++;
+						else if (LOW_REVERB_MATERIALS.contains( block.getSecond() )) lowReverb++;
+						else midReverb++;
 					} else {
-						midReverb += 1;
+						// custom reverb
+						switch(customReverb) {
+						case HIGH: highReverb++; break;
+						case LOW:   lowReverb++; break;
+						default:    midReverb++; break;
+						}
 					}
 				}
 			}
+			
+			// clear blocks
+			// surfaces = new ArrayList<>();
 			// I have the skills, uH, to pay the bills, uH
 			// but seriously, when using all the same type, be smart about it!
 			if (highReverb + midReverb + lowReverb > 0d) {
@@ -238,43 +329,41 @@ public class Reverb {
 			}
 			decayFactor = Utils.clamp(decayFactor);
 
-			// calculate room factor
-			final int roomSize = visited.size();
-			float roomFactor = roomSize / (float) maxBlocks;
+			final int surfaceCount = surfaces.size();
+			float reverbage = surfaceCount;
+
+			// calculate reverbage
+			if (surfaceCount > 8) reverbage /= 24f; // 50% decrease
+			else reverbage /= 16; // standard averaging
+
+			// TODO give echo() information here
+
+			// if (surfaces.size() >= 2) {
+			// 	echo.update(clientPos, surfaces, decayFactor);
+			// }
 
 			// calculate sky factor
-			float skyFactor = 0;
-			if (checkSky && roomSize == maxBlocks) {
-				if (hasSkyAbove(client.world, playerPos) ) skyFactor += 1;
-				final Direction[] directions = new Direction[] { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-				for(Direction direction : directions) {
-					if (hasSkyAbove(client.world, playerPos.offset(direction, random.nextInt(5) + 5) )) skyFactor += 1;
-					if (hasSkyAbove(client.world, playerPos.offset(direction, random.nextInt(5) + 5).offset(Direction.UP, 5) )) skyFactor += 1;
-				}
-			}
-			skyFactor = 1f - skyFactor / 9f;
-			skyFactor *= skyFactor;
+			sky = Math.max(0.1f, sky / 9f);
 
 
 
 			// interpolate values
 			decayFactor = (decayFactor + prevDecayFactor) / 2f;
-			roomFactor = (roomFactor + prevRoomFactor) / 2f;
-			skyFactor = (skyFactor + prevSkyFactor) / 2f;
+			reverbage = (reverbage + prevRoomFactor) / 2f;
+			sky = (sky + prevSkyFactor) / 2f;
 			prevDecayFactor = decayFactor;
-			prevRoomFactor = roomFactor;
-			prevSkyFactor = skyFactor;
+			prevRoomFactor = reverbage;
+			prevSkyFactor = sky;
 
 			// update values
-			decayTime = reverbPercent * 6f * decayFactor * roomFactor * skyFactor;
-			if (decayTime < minDecayTime) {
-				decayTime = minDecayTime;
-			}
-			reflectionsGain = reverbPercent * (reflectionGainBase + reflectionGainMultiplier * roomFactor);
-			reflectionsDelay = reflectionDelayMultiplier * roomFactor;
-			lateReverbGain = reverbPercent * (lateReverbGainBase + lateReverbGainMultiplier * roomFactor);
-			lateReverbDelay = lateReverbDelayMultiplier * roomFactor;
-			//System.out.println(lowReverb + " " + midReverb + " " + highReverb + "\n");
+			decayTime = Math.max(minDecayTime, reverbPercent * 6f * decayFactor * reverbage * sky);
+			reflectionsGain = reverbPercent * (reflectionGainBase + reflectionGainMultiplier * reverbage);
+			reflectionsDelay = reflectionDelayMultiplier * reverbage;
+			lateReverbGain = reverbPercent * (lateReverbGainBase + lateReverbGainMultiplier * reverbage);
+			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
+			// debug
+			System.out.println(lowReverb + " " + midReverb + " " + highReverb + " " + surfaceCount +"\n");
+			surfaces = new ArrayList<>();
 		}
 	}
 
@@ -283,10 +372,13 @@ public class Reverb {
 		
 		final Chunk chunk = world.getChunk(pos);
 		final Heightmap heightMap = chunk.getHeightmap(Heightmap.Type.MOTION_BLOCKING);
-		int x = pos.getX() - chunk.getPos().getStartX();
-		int z = pos.getZ() - chunk.getPos().getStartZ();
-		x = Math.max(0, Math.min(x, 15) );
-		z = Math.max(0, Math.min(z, 15) );
+		// just use modulo?
+		final int x = Math.abs(pos.getX() % 16); // 16 = chunk size
+		final int z = Math.abs(pos.getZ() % 16);
+		// int x = pos.getX() - chunk.getPos().getStartX();
+		// int z = pos.getZ() - chunk.getPos().getStartZ();
+		// x = Math.max(0, Math.min(x, 15) );
+		// z = Math.max(0, Math.min(z, 15) );
 		return heightMap != null && heightMap.get(x, z) <= pos.getY();
 	}
 	
@@ -301,3 +393,4 @@ public class Reverb {
 		}
 	}
 }
+

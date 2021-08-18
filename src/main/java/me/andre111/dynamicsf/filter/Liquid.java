@@ -24,7 +24,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.MathHelper;
+//import net.minecraft.util.math.MathHelper;
 
 public class Liquid {
 	private static boolean enabled = false;
@@ -67,7 +67,7 @@ public class Liquid {
 
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		enabled = data.liquidFilter.enabled;
-		// optimized
+
 		if (!enabled) return;
 
 		// round client pos

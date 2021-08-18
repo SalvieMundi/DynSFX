@@ -27,14 +27,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.openal.EXTEfx;
 
-import net.minecraft.block.Block;
+//import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.sound.SoundInstance.AttenuationType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+//import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class Obstruction {
@@ -45,7 +45,6 @@ public class Obstruction {
 	private static Queue<SoundInstance> toScan = new ConcurrentLinkedQueue<>();
 	
 	// TODO: configurable
-	// This' an option in the settings, isn't it? Why TODO?
 	private static List<Material> HIGH_OBSTRUCTION_MATERIALS = Arrays.asList(Material.WOOL, Material.SPONGE);
 	
 	public static void reinit() {
@@ -156,9 +155,6 @@ public class Obstruction {
 		float obstruction = 0.0f;
 		// 0 <= loops <= 64
 		for(int i=0; i <= distanceRounded; i++) {
-			// store previous positions and check for completion
-			final Vec3d prevPos = currentPos;
-			
 			// increment
 			currentPos = new Vec3d(currentPos.x + increments.x, currentPos.y + increments.y, currentPos.z + increments.z);
 			// real block position

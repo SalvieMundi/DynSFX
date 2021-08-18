@@ -15,12 +15,8 @@
  */
 package me.andre111.dynamicsf.config;
 
-import me.andre111.dynamicsf.config.ConfigDataLiquid;
-import me.andre111.dynamicsf.config.ConfigDataObstruction;
-import me.andre111.dynamicsf.config.ConfigDataReverb;
-
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
