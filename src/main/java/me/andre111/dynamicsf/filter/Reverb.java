@@ -184,6 +184,7 @@ public class Reverb {
 		if (ticks < 16) {
 			// keep quality up to date
 			quality = data.reverbFilter.quality; // mid - 64
+			halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
 
 			// how many steps to take at max
 			final int range = scanSizes[(int) ticks / 4];
