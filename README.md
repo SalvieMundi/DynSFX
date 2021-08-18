@@ -27,13 +27,9 @@ download [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/releases)
 ---
 
 ### Known issues:
-1. lag in nether, this' due to the reverb method being imperformant, I've some ideas as to how to fix
-2. inacurrate to real life ( / percieved scale relative to minecraft) reverb effect  
-These two may be fixed in the next release
-
-3. no echo
-4. no reverse reverb  
-These may take longer.
+1. inacurrate to real life ( / percieved scale relative to minecraft) reverb effect
+2. no echo
+3. no reverse reverb
 
 ---
 
@@ -54,7 +50,7 @@ to:
 ```
 
 Then open a terminal/command line:  
-Linux: Ctrl+Shift+T, may be different for your distro.  
+Linux: Ctrl+Alt+T, may be different for your distro.  
 Windows: Windows key (super/meta) + R, type cmd, Enter.  
 Mac: Command+Space, type in terminal, Enter.  
 
