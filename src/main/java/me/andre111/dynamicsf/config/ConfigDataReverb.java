@@ -30,7 +30,7 @@ public class ConfigDataReverb {
 	
 	public float reverbPercent = 1f;
 	
-	public int maxBlocks = 1024;
+	public int quality = 4;
 	public boolean checkSky = true;
 	
 	public List<String> dimensionBaseReverb = Arrays.asList("minecraft:the_nether;1.0");
@@ -97,8 +97,8 @@ public class ConfigDataReverb {
 		return reverbPercent;
 	}
 
-	public int getMaxBlocks() {
-		return maxBlocks;
+	public int getQuality() {
+		return quality;
 	}
 
 	public boolean getCheckSky() {

@@ -20,11 +20,7 @@ import me.andre111.dynamicsf.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -35,11 +31,9 @@ import net.minecraft.block.Material;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.tag.Tag.Identified;
 //import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.Direction;
 //import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
@@ -75,10 +69,12 @@ public class Reverb {
 	private static final int[] scanSizes = new int[] {30, 100, 30, 10, 30};
 	// skip direction.up, use checkSky for that
 	private static final Direction[] validationOffsets = new Direction[] { Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-	// 
+	// initial tracer value
 	private static final Vec3d initPoint = new Vec3d(0d, 0d, 1d).rotateX(-22.5f);
 
+	// the direction-based increment used for raycasting
 	private static Vec3d tracer = initPoint;
+	// how many sky-available blocks are there
 	private static float sky = 0;
 
 
@@ -86,6 +82,8 @@ public class Reverb {
 	// min: 1, max: 6
 	// final int quality = data.reverbFilter.quality;
 	private static int quality = 4; // mid - 64
+	// starting offset for scanning
+	private static Vec3d halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
 	//	list of
 	//		surface location + list of
 	// 			blockID + material
@@ -184,6 +182,8 @@ public class Reverb {
 
 		// split up scanning over multiple ticks
 		if (ticks < 16) {
+			// keep quality up to date
+			quality = data.reverbFilter.quality; // mid - 64
 
 			// how many steps to take at max
 			final int range = scanSizes[(int) ticks / 4];
@@ -228,8 +228,6 @@ public class Reverb {
 					// take note of surfaces
 					List<Pair<Identifier,Material>> materials = new ArrayList<>();
 
-					// haskell formatting go brr
-					final Vec3d halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
 					// move box bounds negative, so that surface spot is the center
 					pos = pos.subtract(halfBox);
 					// main calculation
@@ -260,9 +258,9 @@ public class Reverb {
 			}
 
 			// move to the next cardinal direction
-			tracer.rotateY(90);
+			tracer = tracer.rotateY(90);
 			// after 1, every 4 ticks move up 1 level
-			if (++ticks % 4 == 0) tracer.rotateX(22.5f);
+			if (++ticks % 4 == 0) tracer = tracer.rotateX(22.5f);
 
 		} else if (ticks < 20) {
 			ticks++;
@@ -271,6 +269,7 @@ public class Reverb {
 			tracer = initPoint;
 			
 			checkSky = data.reverbFilter.checkSky;
+			halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
 
 			final float reverbPercent = data.reverbFilter.reverbPercent;
 			final float minDecayTime = data.reverbFilter.minDecayTime;
@@ -336,24 +335,26 @@ public class Reverb {
 			if (surfaceCount > 8) reverbage /= 24f; // 50% decrease
 			else reverbage /= 16; // standard averaging
 
+			// calculate sky value, before passing to echo
+			sky = Math.max(0.1f, sky / surfaceCount * 2f);
+
 			// TODO give echo() information here
 
 			// if (surfaces.size() >= 2) {
-			// 	echo.update(clientPos, surfaces, decayFactor);
+			// 	echo.update(clientPos, surfaces, decayFactor, sky);
 			// }
-
-			// calculate sky factor
-			sky = Math.max(0.1f, sky / 9f);
-
 
 
 			// interpolate values
 			decayFactor = (decayFactor + prevDecayFactor) / 2f;
-			reverbage = (reverbage + prevRoomFactor) / 2f;
-			sky = (sky + prevSkyFactor) / 2f;
 			prevDecayFactor = decayFactor;
+
+			reverbage = (reverbage + prevRoomFactor) / 2f;
 			prevRoomFactor = reverbage;
+
+			sky = (sky + prevSkyFactor) / 2f;
 			prevSkyFactor = sky;
+
 
 			// update values
 			decayTime = Math.max(minDecayTime, reverbPercent * 6f * decayFactor * reverbage * sky);
@@ -361,8 +362,10 @@ public class Reverb {
 			reflectionsDelay = reflectionDelayMultiplier * reverbage;
 			lateReverbGain = reverbPercent * (lateReverbGainBase + lateReverbGainMultiplier * reverbage);
 			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
+
+			sky = 0;
 			// debug
-			System.out.println(lowReverb + " " + midReverb + " " + highReverb + " " + surfaceCount +"\n");
+			System.out.println(lowReverb + "\t" + midReverb + "\t" + highReverb + "\t" + surfaceCount +"\n");
 			surfaces = new ArrayList<>();
 		}
 	}
