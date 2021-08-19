@@ -30,6 +30,7 @@ download [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/releases)
 - reverse reverb  
 - echo  
 - vibrations  
+- effect presets (potato --> supercomputer)  
 - volume tweaks (realism for reverb and echo)
 
 > see progress [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/milestones)
