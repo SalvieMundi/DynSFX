@@ -18,9 +18,6 @@ download [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/releases)
 - behind walls
 1. sound dampening behind walls
 
-- when near delicate objects
-1. vibration hums
-
 ### **ALL configurable!**
 
 ---
