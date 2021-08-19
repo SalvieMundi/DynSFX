@@ -3,7 +3,7 @@
   "id": "dynsfx",
   "version": "${version}",
   "name": "DynSFX",
-  "description": "Adds reverb (TODO: reverse reverb) and (TODO: echo) in caves/ravines, muffled underwater sounds, and sound dampening behind walls, all configurable.",
+  "description": "Adds reverb, (TODO: reverse reverb), and (TODO: echo) in caves/ravines, muffles sounds underwater, and dampens sounds behind walls, all configurable.",
   "authors": [
     "andre111",
     "MikenRafter"

@@ -124,13 +124,15 @@ public class Obstruction {
 		// update sound obstructions
 		for(Map.Entry<SoundInstance, Float> e : obstructions.entrySet() ) {
 			final float currentAmount = e.getValue();
+			// prevent crashing on null pos
 			final float nextAmount = getObstructionAmount(e.getKey(), client, data, clientPos);
-			// e.setValue((currentAmount * 3f + nextAmount) / 4f);
 			e.setValue((currentAmount + nextAmount * 2f) / 3f);
 		}
 	}
 	
 	private static float getObstructionAmount(final SoundInstance soundInstance, final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
+		// prevent crashing on null pos
+		if (clientPos == null) return 0f;
 		final float obstructionStep = data.obstructionFilter.obstructionStep;
 		final float obstructionMax = data.obstructionFilter.obstructionMax;
 		

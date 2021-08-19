@@ -48,6 +48,8 @@ public class FilterManager {
 				clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
 				// get config states
 				data = Config.getData();
+			} else {
+				verdict = false;
 			}
 			// if there's a world, and a player, then what's the overlap?
 			// merely the loading screen, in & out

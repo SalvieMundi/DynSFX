@@ -32,7 +32,7 @@
     
     "dynamicsoundfilters.config.reverb.scanner": "Simple-RayCast Settings",
     "dynamicsoundfilters.config.reverb.scanner.tooltip": "16 rays casted using 22.5°Y, 90°Z/X increments",
-    "dynamicsoundfilters.config.reverb.scanner.quality": "Maximum Surface-Blocks²/tick Checked",
+    "dynamicsoundfilters.config.reverb.scanner.quality": "Max Blocks³/tick Checked",
     "dynamicsoundfilters.config.reverb.scanner.quality.tooltip": "Higher values result in better reverb but more lag.",
     "dynamicsoundfilters.config.reverb.scanner.checksky": "Check Sky Access",
     "dynamicsoundfilters.config.reverb.scanner.checksky.tooltip": "Increases reverb in areas with sky access.",

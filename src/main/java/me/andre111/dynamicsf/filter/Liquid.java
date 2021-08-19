@@ -68,7 +68,8 @@ public class Liquid {
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		enabled = data.liquidFilter.enabled;
 
-		if (!enabled) return;
+		// prevent crashing on null pos
+		if (!enabled || clientPos == null) return;
 
 		// round client pos
 		BlockPos playerPos = new BlockPos(clientPos);
