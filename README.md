@@ -18,25 +18,32 @@ download [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/releases)
 - behind walls
 1. sound dampening behind walls
 
+- when near delicate objects
+1. vibration hums
+
 ### **ALL configurable!**
 
 ---
 
-> Any help with optimization work regarding reverb, and implementation of echo and reverse reverb, would be appreciated.
+### Planned Features:
 
----
+- reverse reverb  
+- echo  
+- vibrations  
+- volume tweaks (realism for reverb and echo)
+
+> see progress [here](https://gitlab.com/mikenrafter1/mc-dyn-sfx/-/milestones)
+
 
 ### Known issues:
 1. inacurrate to real life ( / percieved scale relative to minecraft) reverb effect
-2. no echo
-3. no reverse reverb
 
 ---
 
-### Known non-issues:
-1. delay for applying effects
+### ULTRA-ACCURATE-MODE (requires compile)
+
 > NOTE: This' only noticable when moving extremely fast-ingame.
-> This keeps your FPS and TPS running smoother.  
+> Leaving this off keeps your FPS and TPS running smoother.  
 > If you wish to remove this ~50ms delay in effect accuracy updates, please modify:
 
 `src/main/java/me/andre111/dynamicsf/FilterManager.java`   LN:40  
