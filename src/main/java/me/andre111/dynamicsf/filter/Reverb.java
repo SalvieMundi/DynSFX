@@ -104,13 +104,13 @@ public class Reverb {
 	}
 
 	public static boolean updateSoundInstance(final SoundInstance soundInstance) {
-		// if not needed, exit
-		if (!enabled || reflectionsDelay + lateReverbDelay <= 0 ) return false;
-
 		// ensure sound id is valid
 		if (id == -1) {
 			reinit();
 		}
+
+		// if not needed, exit
+		if (!enabled || reflectionsDelay + lateReverbDelay <= 0 ) return false;
 
 		if (soundInstance.getAttenuationType() == SoundInstance.AttenuationType.LINEAR) {
 			roomRolloffFactor = 2f / (Math.max(soundInstance.getVolume(), 1f) + 2f);
@@ -183,7 +183,7 @@ public class Reverb {
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		enabled = data.reverbFilter.enabled;
 		// prevent crashing on null pos
-		if (!enabled || clientPos == null) return;
+		if (!enabled /*|| clientPos == null || client == null*/) return;
 
 		// split up scanning over multiple ticks
 		if (ticks < 16) {
@@ -313,9 +313,9 @@ public class Reverb {
 			}
 
 			// clear blocks
-			// surfaces = new ArrayList<>();
-			// I have the skills, uH, to pay the bills, uH
-			// but seriously, when using all the same type, be smart about it!
+			surfaces = new ArrayList<>();
+
+			// calculate decay factor
 			if (highReverb + midReverb + lowReverb > 0d) {
 				decayFactor += (highReverb - lowReverb) / (highReverb + midReverb + lowReverb);
 			}
@@ -356,9 +356,8 @@ public class Reverb {
 			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
 
 			// debug
-			System.out.println( surfaceCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
-			// System.out.println(lowReverb + "\t" + midReverb + "\t" + highReverb + "\t" + surfaceCount +"\n");
-			surfaces = new ArrayList<>();
+			// System.out.println( surfaceCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
+			// surfaces = new ArrayList<>();
 
 
 			sky = 0;
@@ -367,7 +366,7 @@ public class Reverb {
 
 	private static Object[] trace(final MinecraftClient client, Vec3d pos, int range, final Vec3d tracer) {
 		// prevent crashing on null world
-		// if (client.world == null) return new Object[] { false, new Vec3d(0,0,0), 0 };
+		// if (client.world == null || pos == null) return new Object[] { false, new Vec3d(0,0,0), 0 };
 
 		BlockPos blockPos = new BlockPos(pos);
 		boolean foundSurface = false;

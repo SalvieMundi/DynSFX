@@ -38,22 +38,18 @@ public class FilterManager {
 	public void updateGlobal(final MinecraftClient client) {
 		// 50ms inaccuraccy at worst + only ran 1/2 as often
 		update = !update;
+		// To recalculate, or not to recalculate.
+		// That, is the boolean condition.
+		verdict = !(client.world == null || client.player == null) && client.isRunning();
+
 		if (update) {
-			// To recalculate, or not to recalculate.
-			// That, is the boolean condition.
-			verdict = !(client.world == null || client.player == null);
 			// if worth updating, then do so
-			if (verdict && client.isRunning()) {
+			if (verdict) {
 				// get player's head/ears position
 				clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
 				// get config states
 				data = Config.getData();
-			} else {
-				verdict = false;
 			}
-			// if there's a world, and a player, then what's the overlap?
-			// merely the loading screen, in & out
-			// verdict = client.isRunning();
 		}
 
 		Reverb.updateGlobal(verdict, client, data, clientPos);

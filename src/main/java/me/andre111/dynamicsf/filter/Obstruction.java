@@ -132,7 +132,7 @@ public class Obstruction {
 	
 	private static float getObstructionAmount(final SoundInstance soundInstance, final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		// prevent crashing on null pos
-		if (clientPos == null) return 0f;
+		//if (clientPos == null) return 0f;
 		final float obstructionStep = data.obstructionFilter.obstructionStep;
 		final float obstructionMax = data.obstructionFilter.obstructionMax;
 		
