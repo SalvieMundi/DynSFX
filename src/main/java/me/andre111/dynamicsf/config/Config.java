@@ -27,7 +27,7 @@ import com.google.gson.Gson;
 public class Config {
 	private static Gson gson = new Gson();
 	private static ConfigData data = new ConfigData();
-	private static File file = new File("./config/dynamicsf/config.json");
+	private static File file = new File("./config/dynSFX/config.json");
 	
 	public static ConfigData getData() {
 		return data;

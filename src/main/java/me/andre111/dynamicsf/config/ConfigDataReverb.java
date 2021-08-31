@@ -33,8 +33,8 @@ public class ConfigDataReverb {
 	public int quality = 4;
 	public boolean checkSky = true;
 	
-	public List<String> dimensionBaseReverb = Arrays.asList("minecraft:the_nether;1.0");
-	public List<String> customBlockReverb = new ArrayList<>();
+	public List<String> dimensionBaseReverb = Arrays.asList("minecraft:the_nether;1.0", "minecraft:the_nether;-0.3");
+	public List<String> customBlockSolidity = new ArrayList<>();
 
 	// Are these accurate? More research's needed.
 	public float density = 0.2f;
@@ -60,7 +60,7 @@ public class ConfigDataReverb {
 	private void calculateCache() {
 		if (!cached) {
 			dimensionBaseReverbMap = ConfigHelper.parseToMap(dimensionBaseReverb, Identifier::new, Float::parseFloat);
-			customBlockReverbMap = ConfigHelper.parseToMap(customBlockReverb, Identifier::new, Reverb.ReverbInfo::fromName);
+			customBlockReverbMap = ConfigHelper.parseToMap(customBlockSolidity, Identifier::new, Reverb.ReverbInfo::fromName);
 			
 			cached = true;
 		}
@@ -110,7 +110,7 @@ public class ConfigDataReverb {
 	}
 
 	public List<String> getCustomBlockReverb() {
-		return customBlockReverb;
+		return customBlockSolidity;
 	}
 
 	public float getDensity() {

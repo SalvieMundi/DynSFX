@@ -142,6 +142,7 @@ public class ConfigScreen implements ModMenuApi {
 		ConfigDataLiquid liquid = new ConfigDataLiquid();
 		ConfigDataObstruction obstruction = new ConfigDataObstruction();
 		ConfigDataReverb reverb = new ConfigDataReverb();
+		ConfigDataEcho echo = new ConfigDataEcho();
 
 		return parent -> {
 			ConfigBuilder builder = ConfigBuilder.create();
@@ -210,6 +211,40 @@ public class ConfigScreen implements ModMenuApi {
 				}
 				liquidFilter.addEntry(lava.build() );
 			}
+
+			/*
+			 * obstruction filter settings
+			*/
+			ConfigCategory obstructionFilter = category(builder, "dynamicsoundfilters.config.obstruction"); {
+				boolf(obstructionFilter::addEntry, entryBuilder,
+					"dynamicsoundfilters.config.obstruction.enable", data.obstructionFilter.enabled,
+					reverb.getEnabled(), b -> data.obstructionFilter.enabled = b);
+
+				floatf(obstructionFilter::addEntry, entryBuilder,
+					"dynamicsoundfilters.config.obstruction.step", data.obstructionFilter.obstructionStep,
+						obstruction.getObstructionStep(), 0f, 1f,
+						f -> data.obstructionFilter.obstructionStep = f);
+
+				floatf(obstructionFilter::addEntry, entryBuilder,
+					"dynamicsoundfilters.config.obstruction.max", data.obstructionFilter.obstructionMax,
+						obstruction.getObstructionMax(), 0f, 1f,
+						f -> data.obstructionFilter.obstructionMax = f);
+			}
+
+			/*
+			 * echo filter settings
+			*/
+			ConfigCategory echoFilter = category(builder, "dynamicsoundfilters.config.echo"); {
+				boolf(echoFilter::addEntry, entryBuilder,
+					"dynamicsoundfilters.config.echo.enable", data.echoFilter.enabled,
+					reverb.getEnabled(), b -> data.echoFilter.enabled = b);
+
+				boolf(echoFilter::addEntry, entryBuilder,
+					"dynamicsoundfilters.config.echo.doaverage", data.echoFilter.doAverage,
+						echo.getDoAverage(),
+						b -> data.echoFilter.doAverage = b);
+			}
+
 			/*
 			 * reverb filter settings
 			 */
@@ -239,10 +274,10 @@ public class ConfigScreen implements ModMenuApi {
 					"dynamicsoundfilters.config.reverb.dimensions.tooltip4");
 
 				listf(reverbFilter::addEntry, entryBuilder,
-					"dynamicsoundfilters.config.reverb.blocks", data.reverbFilter.customBlockReverb,
+					"dynamicsoundfilters.config.reverb.blocks", data.reverbFilter.customBlockSolidity,
 					reverb.getCustomBlockReverb(),
 					l -> {
-						data.reverbFilter.customBlockReverb = l;
+						data.reverbFilter.customBlockSolidity = l;
 						data.reverbFilter.recalculateCache();
 					},
 					"dynamicsoundfilters.config.reverb.blocks.tooltip1",
@@ -339,25 +374,6 @@ public class ConfigScreen implements ModMenuApi {
 							f -> data.reverbFilter.lateReverbDelayMultiplier = f);
 				}
 				reverbFilter.addEntry(advanced.build() );
-			}
-
-			/*
-			 * obstruction filter settings
-			*/
-			ConfigCategory obstructionFilter = category(builder, "dynamicsoundfilters.config.obstruction"); {
-				boolf(obstructionFilter::addEntry, entryBuilder,
-					"dynamicsoundfilters.config.obstruction.enable", data.obstructionFilter.enabled,
-					reverb.getEnabled(), b -> data.obstructionFilter.enabled = b);
-
-				floatf(obstructionFilter::addEntry, entryBuilder,
-					"dynamicsoundfilters.config.obstruction.step", data.obstructionFilter.obstructionStep,
-						obstruction.getObstructionStep(), 0f, 1f,
-						f -> data.obstructionFilter.obstructionStep = f);
-
-				floatf(obstructionFilter::addEntry, entryBuilder,
-					"dynamicsoundfilters.config.obstruction.max", data.obstructionFilter.obstructionMax,
-						obstruction.getObstructionMax(), 0f, 1f,
-						f -> data.obstructionFilter.obstructionMax = f);
 			}
 
 			return builder.build();

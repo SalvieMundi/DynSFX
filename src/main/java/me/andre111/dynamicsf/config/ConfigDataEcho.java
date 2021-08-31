@@ -15,10 +15,15 @@
  */
 package me.andre111.dynamicsf.config;
 
-public class ConfigData {
-	public ConfigDataGeneral general = new ConfigDataGeneral();
-	public ConfigDataReverb reverbFilter = new ConfigDataReverb();
-	public ConfigDataLiquid liquidFilter = new ConfigDataLiquid();
-	public ConfigDataObstruction obstructionFilter = new ConfigDataObstruction();
-	public ConfigDataEcho echoFilter = new ConfigDataEcho();
+public class ConfigDataEcho {
+	public boolean enabled = true;
+	public boolean doAverage = true;
+
+	public boolean getEnabled() {
+		return enabled;
+	}
+
+	public boolean getDoAverage() {
+		return doAverage;
+	}
 }

@@ -22,6 +22,7 @@ import me.andre111.dynamicsf.config.Config;
 import me.andre111.dynamicsf.config.ConfigData;
 import me.andre111.dynamicsf.filter.Obstruction;
 import me.andre111.dynamicsf.filter.Reverb;
+import me.andre111.dynamicsf.filter.Echo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -42,14 +43,15 @@ public class FilterManager {
 		// That, is the boolean condition.
 		verdict = !(client.world == null || client.player == null) && client.isRunning();
 
-		if (update) {
-			// if worth updating, then do so
-			if (verdict) {
-				// get player's head/ears position
-				clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
-				// get config states
-				data = Config.getData();
-			}
+		// if worth updating, then do so
+		if (update && verdict) {
+			// get player's head/ears position
+			clientPos = client.player.getPos().add(0, client.player.getEyeHeight(client.player.getPose() ), 0);
+			// get config states
+			data = Config.getData();
+			
+			// echo's special :)
+			Echo.update(client);
 		}
 
 		Reverb.updateGlobal(verdict, client, data, clientPos);
@@ -63,6 +65,7 @@ public class FilterManager {
 		// whether each effect grouping should be applied
 		final boolean reverberate = Reverb.updateSoundInstance(soundInstance/*, data*/);
 		final boolean obstructed = Obstruction.updateSoundInstance(soundInstance, data);
+		Echo.updateSoundInstance(soundInstance/*, data*/);
 
 		// only evaluate obstruction and reverb once!
 		// since ran whence an err', worry merely of branches

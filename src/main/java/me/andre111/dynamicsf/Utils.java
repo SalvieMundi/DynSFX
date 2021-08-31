@@ -31,29 +31,61 @@ package me.andre111.dynamicsf;
  */
 public class Utils {
 
+
+    /*
+     * Ensures value isn't NaN
+     */
+    public static double ensure(final double value) {
+        return Double.isNaN(value) ? 0 : value;
+    }
+
+    /*
+     * Ensures value isn't NaN
+     */
+    public static float ensure(final float value) {
+        return Float.isNaN(value) ? 0 : value;
+    }
+
+    /*
+     * Ensures value isn't NaN
+     */
+    public static int ensure(final int value) {
+        // return Integer.isNaN(value) ? 0 : value;
+        return value;
+    }
+
+    /*
+     * Ensures value isn't NaN
+     */
+    public static long ensure(final long value) {
+        // return Long.isNaN(value) ? 0 : value;
+        return value;
+    }
+
+
     // clamping between 0 & 1 was done soo often, I figured I'd abstract it.
     /**
      * Clamps the given value between 0 & 1
      */
     public static double clamp (final double value) {
-        return Math.min(1, Math.max(value, 0) );
+        return Math.min(1, Math.max(ensure(value), 0) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
     public static float clamp (final float value) {
-        return Math.min(1, Math.max(value, 0) );
+        return Math.min(1, Math.max(ensure(value), 0) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
     public static int clamp (final int value) {
-        return Math.min(1, Math.max(value, 0) );
+        return Math.min(1, Math.max(ensure(value), 0) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
     public static long clamp (final long value) {
-        return Math.min(1, Math.max(value, 0) );
+        return Math.min(1, Math.max(ensure(value), 0) );
     }
 }

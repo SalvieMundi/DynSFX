@@ -87,7 +87,8 @@ public class Reverb {
 	//	list of
 	//		surface location + list of
 	// 			blockID + material
-	private static List<Pair<BlockPos,List<Pair<Identifier,Material>>>> surfaces = new ArrayList<>();
+	private static List<Pair<Identifier,Material>> surfaces = new ArrayList<>();
+	private static List<Vec3d> positions = new ArrayList<>();
 	
 	//TODO: configurable
 	private static List<Material> HIGH_REVERB_MATERIALS = Arrays.asList(Material.STONE, Material.GLASS, Material.ICE, Material.DENSE_ICE, Material.METAL);
@@ -178,12 +179,12 @@ public class Reverb {
 		quality = data.reverbFilter.quality; // mid - 64
 		halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
 		scanSizes = new int[] {quality * 8, quality * 20, quality * 8, quality * 8, quality * 20};
+		Echo.reset(data);
 	}
 
 	private static void update(final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		enabled = data.reverbFilter.enabled;
-		// prevent crashing on null pos
-		if (!enabled /*|| clientPos == null || client == null*/) return;
+		if (!enabled) return;
 
 		// split up scanning over multiple ticks
 		if (ticks < 16) {
@@ -207,8 +208,6 @@ public class Reverb {
 				// if there's at least 3 other blocks on the surface, then
 				// consider it a reverb point
 				if (surface >= 3) {
-					// take note of surfaces
-					List<Pair<Identifier,Material>> materials = new ArrayList<>();
 
 					// move box bounds negative, so that surface spot is the center
 					pos = pos.subtract(halfBox);
@@ -231,11 +230,11 @@ public class Reverb {
 									!( material == Material.AIR
 									|| material == Material.WATER
 									|| material == Material.LAVA
-									) ) materials.add(new Pair<>(blockID, material));
+									) ) surfaces.add(new Pair<>(blockID, material));
 							}
 						}
 					}
-					surfaces.add(new Pair<>(blockPos, materials));
+					positions.add(new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
 				}
 			}
 
@@ -288,32 +287,24 @@ public class Reverb {
 			}
 
 			// loop through surfaces
-			for (Pair<BlockPos,List<Pair<Identifier,Material>>> surface : surfaces ) {
-				// get surface materials
-				final List<Pair<Identifier,Material>> stats = surface.getSecond();
-				// loop through materials
-				for (Pair<Identifier,Material> block : stats) {
-					// custom block reverb overrides
-					final ReverbInfo customReverb = data.reverbFilter.getCustomBlockReverb( block.getFirst() );
-					// calculate reverbage
-					if (customReverb == null) {
-						// material based reverb
-						if (HIGH_REVERB_MATERIALS.contains( block.getSecond() )) highReverb++;
-						else if (LOW_REVERB_MATERIALS.contains( block.getSecond() )) lowReverb++;
-						else midReverb++;
-					} else {
-						// custom reverb
-						switch(customReverb) {
-						case HIGH: highReverb++; break;
-						case LOW:   lowReverb++; break;
-						default:    midReverb++; break;
-						}
+			for (Pair<Identifier,Material> block : surfaces) {
+				// custom block reverb overrides
+				final ReverbInfo customReverb = data.reverbFilter.getCustomBlockReverb( block.getFirst() );
+				// calculate reverbage
+				if (customReverb == null) {
+					// material based reverb
+					if (HIGH_REVERB_MATERIALS.contains( block.getSecond() )) highReverb++;
+					else if (LOW_REVERB_MATERIALS.contains( block.getSecond() )) lowReverb++;
+					else midReverb++;
+				} else {
+					// custom reverb
+					switch(customReverb) {
+					case HIGH: highReverb++; break;
+					case LOW:   lowReverb++; break;
+					default:    midReverb++; break;
 					}
 				}
 			}
-
-			// clear blocks
-			surfaces = new ArrayList<>();
 
 			// calculate decay factor
 			if (highReverb + midReverb + lowReverb > 0d) {
@@ -321,21 +312,14 @@ public class Reverb {
 			}
 			decayFactor = Utils.clamp(decayFactor);
 
-			final int surfaceCount = Math.max(1, surfaces.size());
-			float reverbage = surfaceCount / 8f; // 16-s = 2
+			final int posCount = Math.max(1, positions.size());
+			float reverbage = posCount / 8f; // 16-s = 2
 
 			// calculate reverbage
 			// if (surfaceCount <= 8) reverbage /= 2;
 
 			// calculate sky value, before passing to echo
-			sky = Math.min(30, Math.max(0.1f, sky / surfaceCount * 6f));
-
-			// TODO give echo() information here
-
-			// if (surfaces.size() >= 2) {
-			// 	echo.update(clientPos, surfaces, decayFactor, sky);
-			// }
-
+			sky = Math.min(30, Math.max(0.1f, sky / posCount * 6f));
 
 			// interpolate values
 			decayFactor = (decayFactor + prevDecayFactor) / 2f;
@@ -348,6 +332,14 @@ public class Reverb {
 			prevSkyFactor = sky;
 
 
+			// do echo?
+			Echo.updateStats(data, clientPos, positions, decayFactor, sky);
+
+			// clear blocks
+			surfaces = new ArrayList<>();
+			positions = new ArrayList<>();
+
+
 			// update values
 			decayTime = Math.max(minDecayTime, (reverbPercent + sky) * 6f * decayFactor * reverbage);
 			reflectionsGain = (reverbPercent + sky) * (reflectionGainBase + reflectionGainMultiplier * reverbage);
@@ -356,8 +348,9 @@ public class Reverb {
 			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
 
 			// debug
-			// System.out.println( surfaceCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
+			// System.out.println( posCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
 			// surfaces = new ArrayList<>();
+			// positions = new ArrayList<>();
 
 
 			sky = 0;
@@ -380,9 +373,9 @@ public class Reverb {
 			// if full block here
 			if ( client.world.getBlockState(blockPos).isFullCube(client.world, blockPos) ) {
 				// if distance is big enough
-				if (steps > 3) foundSurface = true;
+				if (steps > 5) foundSurface = true;
 				break;
-			// if found still fluid, it's a body of water, stop looping
+				// if found still fluid, it's a body of water, stop looping
 			} else if ( client.world.getFluidState(blockPos).isStill() ) break;
 			// otherwise, move along
 			pos = pos.add(tracer);
