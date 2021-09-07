@@ -24,19 +24,10 @@ import net.minecraft.util.Identifier;
 
 public class ConfigDataGeneral {
 	public static final List<String> DEFAULT_IGNORED_SOUND_EVENTS = Collections.unmodifiableList(Arrays.asList(
-			// "minecraft:music.creative", "minecraft:music.credits", "minecraft:music.dragon",
-			// "minecraft:music.end", "minecraft:music.game", "minecraft:music.menu", "minecraft:music.nether.basalt_deltas",
-			// "minecraft:music.nether.nether_wastes", "minecraft:music.nether.soul_sand_valley", "minecraft:music.nether.crimson_forest",
-			// "minecraft:music.nether.warped_forest", "minecraft:music.under_water",
-			// they cause MASSIVE lag, if not ignored
-			"minecraft:block.lava.pop",
-			"minecraft:weather.rain",
-			// personally I like button noises to have echo & reverb when
-			// appropriate (caves), but not everyone will appreciate this
-			// "minecraft:ui.button.click",
-			// "minecraft:ui.toast.challenge_complete", "minecraft:ui.toast.in", "minecraft:ui.toast.out",
-			"minecraft:music", "minecraft:ui",
-			// these make A LOT of sounds!
+			"minecraft:block.lava.pop", // too frequent
+			"minecraft:weather.rain", // too frequent
+			"minecraft:music", // too frequent and nonsensical
+			"minecraft:ui", // too frequent and nonsensical
 			"atm", // atmosfera / atmosfera
 			"dyn" // dynmus / dynamicMusic
 			) );

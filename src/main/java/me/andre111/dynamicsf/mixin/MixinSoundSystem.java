@@ -25,6 +25,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+import me.andre111.dynamicsf.filter.Reverb;
+
 import me.andre111.dynamicsf.DynamicSoundFilters;
 import me.andre111.dynamicsf.interfaces.SourceWithID;
 import net.minecraft.client.sound.Channel;
@@ -65,4 +67,9 @@ public class MixinSoundSystem {
 			DynamicSoundFilters.getFilterManager().updateSoundInstance(soundInstance, sourceWithID.getID() );
 		});
 	}
+	// fix issue #4 - (resource packs)
+	@Inject(method = "reloadSounds", at = @At("TAIL"))
+		public void dsf$reloadSounds(CallbackInfo ci) {
+			Reverb.reinit();
+	}	
 }

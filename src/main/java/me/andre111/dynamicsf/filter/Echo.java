@@ -75,7 +75,7 @@ public class Echo {
 		}
 		// add sound with countdown value
 		// unless echo filter made the sound
-		if (ignore <= 0) sounds.add(new Pair<Float,SoundInstance>(400f, soundInstance));
+		if (ignore <= 0) sounds.add(new Pair<Float,SoundInstance>(100f, soundInstance));
 		else {
 			ignore--;
 			System.out.println("ignored echo");
@@ -137,15 +137,16 @@ public class Echo {
 			if (timer > 0) {
 				// timer -= decay + (decay * sky);
 				// decay
-				timer *= decay;
+				timer *= (Utils.clamp(0.5 + decay) + 1) / 2;
 				// sky-based decay
 				// timer -= sky * ( 0.75 - decay );
 				// timer -= sky / positionCount;
 				// max of 5s, subtract based on distance
 				// increment = -1 * Math.max(2, Math.abs((positionCount * positionCount) - distance));
-				increment = Math.abs( Math.max( 0.1, Math.max(1,distance / 3) / Math.max(1,positionCount)) );
+				// increment = Math.abs( Math.max( 0.1, Math.max(1,distance / 3) / Math.max(1,positionCount)) );
 				// timer -= increment;
 				timer--;
+				System.out.println(timer);
 				// decrement timer
 				// timer /= Math.max(1, distance / positionCount);
 

@@ -25,6 +25,7 @@ import java.util.List;
 import com.mojang.datafixers.util.Pair;
 
 import org.lwjgl.openal.EXTEfx;
+import org.lwjgl.openal.AL11;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
@@ -97,8 +98,10 @@ public class Reverb {
 	public static void reinit() {
 		id = EXTEfx.alGenEffects();
 		slot = EXTEfx.alGenAuxiliaryEffectSlots();
+		final int err = AL11.alGetError();
+		if (err != AL11.AL_NO_ERROR) System.out.println(err);
 	}
-	
+
 	public static void updateGlobal(final boolean verdict, final MinecraftClient client, final ConfigData data, final Vec3d clientPos) {
 		if (verdict) update(client, data, clientPos);
 		else reset(data);
