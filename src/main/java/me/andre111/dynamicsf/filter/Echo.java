@@ -33,6 +33,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Identifier;
 
 public class Echo {
 	private static boolean enabled = false;
@@ -47,6 +48,14 @@ public class Echo {
 
 	private static float decay = 0;
 	private static float sky = 0;
+	private static float idVol = 0.999999999999969f;
+
+	private static int counter = 0;
+
+
+	private static Vec3d prevPos = new Vec3d(0,0,0);
+	private static String prevName = "";
+
 
 	// TODO remove later
 	private static double increment = 0;
@@ -73,12 +82,46 @@ public class Echo {
 			sounds = new ArrayList<>();
 			return false;
 		}
-		// add sound with countdown value
-		// unless echo filter made the sound
-		if (ignore <= 0) sounds.add(new Pair<Float,SoundInstance>(100f, soundInstance));
+
+		if (ignore <= 0) {
+
+			final Vec3d currentPos = new Vec3d(soundInstance.getX(), soundInstance.getY(), soundInstance.getZ());
+			String currentName = soundInstance.getId().toString();
+			String counterName = Integer.toString(counter / 100);
+
+			// MANY random noises, in rapid succession, do this to make
+			// it manageable, TODO make dynamically configurable
+			// if (currentName.toString().startsWith("presencefootsteps")) {
+				// currentName = counterName;
+				// counter = (counter + 1) % 1000; // cycle 10x around
+			// }
+
+			// if (
+			// 	// if it's a duplicate, for sure
+			// 	// (prevName == counterName && currentName == counterName) ||
+			// 	// otherwise, ensure that it's a duplicate
+			// 	(currentPos.distanceTo(prevPos) < 3f && prevName == currentName)
+			// ) {
+			// 	System.out.print("|");
+			// } else
+			
+			// why does this never work?
+			if (prevName == currentName || currentPos.distanceTo(prevPos) < 2) {
+				prevPos = currentPos;
+				prevName = currentName;
+				return false;
+			}
+			prevPos = currentPos;
+			prevName = currentName;
+			if (soundInstance.getVolume() != idVol) {
+				System.out.println("\t" + prevName + "\t" + currentName + "\t" + currentPos.distanceTo(prevPos));
+				
+				sounds.add(new Pair<Float,SoundInstance>(100f,soundInstance));
+				ignore++;
+			}
+		}
 		else {
 			ignore--;
-			System.out.println("ignored echo");
 		};
 
 		return true;
@@ -87,7 +130,7 @@ public class Echo {
 	public static void updateStats(final ConfigData data, final Vec3d clientPos,
 		final List<Vec3d> positions, final float decay, final float sky
 	) {
-		enabled = data.reverbFilter.enabled;
+		enabled = data.echoFilter.enabled;
 		doAverage = data.echoFilter.doAverage;
 
 		if (!enabled) return;
@@ -117,9 +160,10 @@ public class Echo {
 		}
 
 		// evaluate average
-		newPos.add(furthest);
-		newPos = newPos.multiply(1 / (size + 1));
+		newPos = newPos.add(furthest).multiply(1f / size);
 		positionCount = positions.size();
+		prevName = "";
+
 	}
 
 	public static void update(final MinecraftClient client) {
@@ -137,7 +181,7 @@ public class Echo {
 			if (timer > 0) {
 				// timer -= decay + (decay * sky);
 				// decay
-				timer *= (Utils.clamp(0.5 + decay) + 1) / 2;
+				timer *= Utils.clamp(decay);
 				// sky-based decay
 				// timer -= sky * ( 0.75 - decay );
 				// timer -= sky / positionCount;
@@ -146,15 +190,12 @@ public class Echo {
 				// increment = Math.abs( Math.max( 0.1, Math.max(1,distance / 3) / Math.max(1,positionCount)) );
 				// timer -= increment;
 				timer--;
-				System.out.println(timer);
+				// System.out.println(timer);
 				// decrement timer
 				// timer /= Math.max(1, distance / positionCount);
 
-				if (timer > 0) {
-					// System.out.print("\n\n\n\t\t\tt ");
-					// System.out.print(timer);
-					// System.out.print("\td ");
-					// System.out.println(decay);
+				if (timer <= 0) {
+
 				}
 
 				// update timer value
@@ -166,14 +207,14 @@ public class Echo {
 			} else {
 				// ensure the sound's ignored by echo
 				ignore++;
-				// play sound
-				client.world.playSound(newPos.x, newPos.y, newPos.z, new SoundEvent(sound.getSound().getIdentifier()), sound.getCategory(), 1f, 1f, true);
+				// play sound, useDistance=false - no further delay
+				client.world.playSound(newPos.getX(), newPos.getY(), newPos.getZ(), new SoundEvent(sound.getId()), sound.getCategory(), idVol, 1f, false);
 				// remove the sound
 				sounds.remove(i);
 
 				// debug
 				// System.out.println("\n\n\nECHO\n\n\n");
-				// System.out.print(sound.getSound().getIdentifier() + "\t\t");
+				// System.out.print(sound.getId() + "\t\t");
 				// System.out.println(increment);
 
 				// don't increment here, as a sound's removed

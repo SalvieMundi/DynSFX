@@ -24,12 +24,18 @@ import net.minecraft.util.Identifier;
 
 public class ConfigDataGeneral {
 	public static final List<String> DEFAULT_IGNORED_SOUND_EVENTS = Collections.unmodifiableList(Arrays.asList(
+			// starts with
 			"minecraft:block.lava.pop", // too frequent
 			"minecraft:weather.rain", // too frequent
 			"minecraft:music", // too frequent and nonsensical
 			"minecraft:ui", // too frequent and nonsensical
 			"atm", // atmosfera / atmosfera
-			"dyn" // dynmus / dynamicMusic
+			"dyn", // dynmus / dynamicMusic
+
+			// ends with
+			"_walk", // ends with / presencefootsteps.pf.grass.grass_walk
+			"_wander", // ends with / presencefootsteps.pf.grass.grass_wander
+			".step" // ends with / mc:block.copper.step
 			) );
 	
 	public List<String> ignoredSoundEvents = DEFAULT_IGNORED_SOUND_EVENTS;
@@ -59,7 +65,11 @@ public class ConfigDataGeneral {
 		// loop through sound events, and check if the beginning matches
 		// in essence: .contains, but allowing categories
 		for (String ignored : ignoredSoundEventsSet)
-			if (identifier.toString().startsWith(ignored)) return true;
+			if (ignored.startsWith(".") || ignored.startsWith("_")) {
+				if (identifier.toString().endsWith(ignored)) return true;
+			} else {
+				if (identifier.toString().startsWith(ignored)) return true;
+			}
 		return false;
 		// return ignoredSoundEventsSet.contains(identifier);
 	}
