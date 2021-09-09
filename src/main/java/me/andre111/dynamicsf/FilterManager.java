@@ -39,6 +39,7 @@ public class FilterManager {
 	public void updateGlobal(final MinecraftClient client) {
 		// 50ms inaccuraccy at worst + only ran 1/2 as often
 		update = !update;
+		// update = true;
 		// To recalculate, or not to recalculate.
 		// That, is the boolean condition.
 		verdict = !(client.world == null || client.player == null) && client.isRunning();
@@ -77,7 +78,7 @@ public class FilterManager {
 			// EXTEfx.AL_FILTER_BANDPASS EXTEfx.AL_EFFECTSLOT_GAIN EXTEfx.AL_EQUALIZER_HIGH_GAIN
 
 			AL11.alSourcei(sourceID, EXTEfx.AL_DIRECT_FILTER, obstructionID);
-			AL11.alSource3i(sourceID, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbSlot, 0, obstructionID);
+			AL11.alSource3i(sourceID, EXTEfx.AL_AUXILIARY_SEND_FILTER, reverbSlot, 1, obstructionID);
 
 			// if error: log it and try once more, otherwise: end loop
 			final int error = AL11.alGetError();

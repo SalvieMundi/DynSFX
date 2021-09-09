@@ -38,27 +38,27 @@ import net.minecraft.util.Identifier;
 public class Echo {
 	private static boolean enabled = false;
 	private static boolean doAverage = true;
-	private static int ignore = 0;
 
+	// for updateStats
 	private static Vec3d newPos = new Vec3d(0,0,0);
 	private static Vec3d furthest = new Vec3d(0,0,0);
 	private static double distance = 0;
 	private static int size = 2;
-	private static int positionCount = 0;
-
+	private static float reduce = 0;
 	private static float decay = 0;
 	private static float sky = 0;
-	private static float idVol = 0.999999999999969f;
-
-	private static int counter = 0;
 
 
+	// used to uniquely identify echos, without an audible difference
+	private static float idPitch = 0.999999999999969f;
+	// how many sounds to ignore (incremented upon an echo)
+	private static int ignore = 0;
+
+	
+	// tracker variables for things past
+	private static long prevTime = System.currentTimeMillis();
 	private static Vec3d prevPos = new Vec3d(0,0,0);
 	private static String prevName = "";
-
-
-	// TODO remove later
-	private static double increment = 0;
 
 	// [[timer,soundInstance], ]
 	private static List<Pair<Float,SoundInstance>> sounds = new ArrayList<>();
@@ -77,58 +77,44 @@ public class Echo {
 		sounds = new ArrayList<>();
 	}
 
-	public static boolean updateSoundInstance(final SoundInstance soundInstance) {
+	public static void updateSoundInstance(final SoundInstance soundInstance) {
 		if (!enabled) {
 			sounds = new ArrayList<>();
-			return false;
+			return;
 		}
 
-		if (ignore <= 0) {
-
-			final Vec3d currentPos = new Vec3d(soundInstance.getX(), soundInstance.getY(), soundInstance.getZ());
-			String currentName = soundInstance.getId().toString();
-			String counterName = Integer.toString(counter / 100);
-
-			// MANY random noises, in rapid succession, do this to make
-			// it manageable, TODO make dynamically configurable
-			// if (currentName.toString().startsWith("presencefootsteps")) {
-				// currentName = counterName;
-				// counter = (counter + 1) % 1000; // cycle 10x around
-			// }
-
-			// if (
-			// 	// if it's a duplicate, for sure
-			// 	// (prevName == counterName && currentName == counterName) ||
-			// 	// otherwise, ensure that it's a duplicate
-			// 	(currentPos.distanceTo(prevPos) < 3f && prevName == currentName)
-			// ) {
-			// 	System.out.print("|");
-			// } else
-			
-			// why does this never work?
-			if (prevName == currentName || currentPos.distanceTo(prevPos) < 2) {
-				prevPos = currentPos;
-				prevName = currentName;
-				return false;
-			}
-			prevPos = currentPos;
-			prevName = currentName;
-			if (soundInstance.getVolume() != idVol) {
-				System.out.println("\t" + prevName + "\t" + currentName + "\t" + currentPos.distanceTo(prevPos));
-				
-				sounds.add(new Pair<Float,SoundInstance>(100f,soundInstance));
-				ignore++;
-			}
-		}
-		else {
+		if (ignore > 0) {
 			ignore--;
-		};
+			return;
+		}
 
-		return true;
+		final Vec3d currentPos = new Vec3d(soundInstance.getX(), soundInstance.getY(), soundInstance.getZ());
+		final String currentName = soundInstance.getId().toString();
+		final long time = System.currentTimeMillis();
+
+
+		// filter out echos
+		if (
+			// if the name's new or the position's new or if 500ms has elapsed
+			(prevName != currentName || currentPos.distanceTo(prevPos) >= 2 || Math.abs(prevTime - time) >= 500) &&
+			// if the sound wasn't an echo, and was loud enough
+			(soundInstance.getPitch() != idPitch && soundInstance.getVolume() > 0.2f)
+		) {
+			// only update time if a sound was pushed through
+			prevTime = time;
+			// debug
+			// System.out.println("\t" + prevName + "\t" + currentName + "\t" + currentPos.distanceTo(prevPos));
+
+			// add the sound to the echo 'queue'
+			// not an actual queue due to memory handling surrounding queues
+			sounds.add(new Pair<Float,SoundInstance>(30f,soundInstance));
+		}
+		prevPos = currentPos;
+		prevName = currentName;
 	}
 
 	public static void updateStats(final ConfigData data, final Vec3d clientPos,
-		final List<Vec3d> positions, final float decay, final float sky
+		final List<Vec3d> positions, final float reducer, final float decayValue, final float skyValue
 	) {
 		enabled = data.echoFilter.enabled;
 		doAverage = data.echoFilter.doAverage;
@@ -153,16 +139,19 @@ public class Echo {
 
 		// average ? add values for mean()
 		if (doAverage) {
+			size += positions.size();
 			for (Vec3d position : positions) {
 				newPos = newPos.add(position);
-				size++;
 			}
 		}
 
 		// evaluate average
 		newPos = newPos.add(furthest).multiply(1f / size);
-		positionCount = positions.size();
-		prevName = "";
+
+		// update values
+		reduce = reducer;
+		decay = decayValue;
+		sky = skyValue;
 
 	}
 
@@ -173,52 +162,62 @@ public class Echo {
 		int i = 0;
 		// increment values
 		while (i < sounds.size()) {
-			final Pair<Float,SoundInstance> instance = sounds.get(i);
+			Pair<Float,SoundInstance> instance = null;
+
+			// the try_catch stopped random errors appearing /shrug
+			try {
+				instance = sounds.get(i);
+			} catch (Exception e) {
+				System.out.println(e);
+				continue;
+			}
+			
 			final SoundInstance sound = instance.getSecond();
 
 			float timer = instance.getFirst();
 			// if timer's still going
 			if (timer > 0) {
-				// timer -= decay + (decay * sky);
-				// decay
-				timer *= Utils.clamp(decay);
-				// sky-based decay
-				// timer -= sky * ( 0.75 - decay );
-				// timer -= sky / positionCount;
-				// max of 5s, subtract based on distance
-				// increment = -1 * Math.max(2, Math.abs((positionCount * positionCount) - distance));
-				// increment = Math.abs( Math.max( 0.1, Math.max(1,distance / 3) / Math.max(1,positionCount)) );
-				// timer -= increment;
-				timer--;
-				// System.out.println(timer);
-				// decrement timer
-				// timer /= Math.max(1, distance / positionCount);
-
-				if (timer <= 0) {
-
+				// if reverb's not strong enough, don't duplicate sounds in a gross way
+				if (reduce <= 2) {
+					// System.out.println(decay);
+					sounds.remove(i);
+					continue;
 				}
 
-				// update timer value
-				sounds.set(i, new Pair<Float,SoundInstance>(timer, sound));
+				final float reducer = Utils.clamp(reduce/20f,0f,0.75f);
+				// decay the timer
+				timer *= reducer * reducer * decay * decay;
+				timer--;
 
-				// don't loop infinitely!
-				i++;
+				// if timer's still going, then don't do last section
+				if (timer > 0) {
+					// update timer value
+					sounds.set(i, new Pair<Float,SoundInstance>(timer, sound));
 
-			} else {
-				// ensure the sound's ignored by echo
-				ignore++;
-				// play sound, useDistance=false - no further delay
-				client.world.playSound(newPos.getX(), newPos.getY(), newPos.getZ(), new SoundEvent(sound.getId()), sound.getCategory(), idVol, 1f, false);
-				// remove the sound
-				sounds.remove(i);
-
-				// debug
-				// System.out.println("\n\n\nECHO\n\n\n");
-				// System.out.print(sound.getId() + "\t\t");
-				// System.out.println(increment);
-
-				// don't increment here, as a sound's removed
+					// don't loop infinitely!
+					i++;
+					continue;
+				}
 			}
+			// else:
+
+			// ensure the sound's ignored by echo
+			ignore++;
+			// calc volume: (vol/3 - echoDistance/128) * decay
+			final float volume = (Utils.clamp(sound.getVolume() / 3f -
+				(float) (new Vec3d(sound.getX(),sound.getY(),sound.getZ()))
+				.distanceTo(newPos) / 128f)) * decay;
+			// play sound, useDistance=false - no further delay
+			client.world.playSound(newPos.getX(), newPos.getY(), newPos.getZ(), new SoundEvent(sound.getId()), sound.getCategory(), volume, idPitch, false);
+			// remove the sound
+			sounds.remove(i);
+
+			// debug
+			// System.out.println("\n\n\nECHO\n\n\n");
+			// System.out.print(sound.getId() + "\t\t");
+			// System.out.println(increment);
+
+			// don't increment here, as a sound's removed
 		}
 	}
 }

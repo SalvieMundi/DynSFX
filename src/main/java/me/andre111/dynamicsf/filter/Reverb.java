@@ -67,7 +67,7 @@ public class Reverb {
 	private static float roomRolloffFactor = 0f;
 	private static int decayHFLimit = 1;
 
-	private static int[] scanSizes = new int[] {30, 100, 30, 10, 30};
+	private static int[] scanSizes = new int[] {50, 120, 50, 20, 50};
 	// skip direction.up, use checkSky for that
 	private static final Direction[] validationOffsets = new Direction[] { Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 	// initial tracer value
@@ -126,14 +126,14 @@ public class Reverb {
 		diffusion = Utils.clamp(diffusion);
 		gain = Utils.clamp(gain);
 		gainHF = Utils.clamp(gainHF);
-		decayTime = Utils.clamp(decayTime);
-		decayHFRatio = Utils.clamp(decayHFRatio);
-		reflectionsGain = Utils.clamp(reflectionsGain);
-		reflectionsDelay = Utils.clamp(reflectionsDelay);
-		lateReverbGain = Utils.clamp(lateReverbGain);
-		lateReverbDelay = Utils.clamp(lateReverbDelay);
-		airAbsorptionGainHF = Utils.clamp(airAbsorptionGainHF);
-		roomRolloffFactor = Utils.clamp(roomRolloffFactor);
+		decayTime = Utils.clamp(decayTime, 0.1f,20f);
+		decayHFRatio = Utils.clamp(decayHFRatio, 0.1f,2f);
+		reflectionsGain = Utils.clamp(reflectionsGain, 0f,3.16f);
+		reflectionsDelay = Utils.clamp(reflectionsDelay, 0f,0.3f);
+		lateReverbGain = Utils.clamp(lateReverbGain, 0f,10f);
+		lateReverbDelay = Utils.clamp(lateReverbDelay, 0,0.1f);
+		airAbsorptionGainHF = Utils.clamp(airAbsorptionGainHF, 0.892f,1f);
+		roomRolloffFactor = Utils.clamp(roomRolloffFactor, 0f,10f);
 		decayHFLimit = Utils.clamp(decayHFLimit);
 
 		EXTEfx.alAuxiliaryEffectSlotf(slot, EXTEfx.AL_EFFECTSLOT_GAIN, 0);
@@ -281,13 +281,13 @@ public class Reverb {
 			double midReverb  = 0d;
 			double lowReverb  = 0d;
 
-			try {
-				decayFactor = data.reverbFilter.getDimensionBaseReverb(
-					client.world.getRegistryKey().getValue() );
-			} catch (NullPointerException e) {
-				surfaces = new ArrayList<>();
-				return; // if no client.world
-			}
+			// try {
+			decayFactor = data.reverbFilter.getDimensionBaseReverb(
+				client.world.getRegistryKey().getValue() );
+			// } catch (NullPointerException e) {
+			// 	surfaces = new ArrayList<>();
+			// 	return; // if no client.world
+			// }
 
 			// loop through surfaces
 			for (Pair<Identifier,Material> block : surfaces) {
@@ -313,7 +313,7 @@ public class Reverb {
 			if (highReverb + midReverb + lowReverb > 0d) {
 				decayFactor += (highReverb - lowReverb) / (highReverb + midReverb + lowReverb);
 			}
-			decayFactor = Utils.clamp(decayFactor);
+			decayFactor = Utils.clamp(decayFactor);//+ 0.8f);
 
 			final int posCount = Math.max(1, positions.size());
 			float reverbage = posCount / 8f; // 16-s = 2
@@ -322,7 +322,7 @@ public class Reverb {
 			// if (surfaceCount <= 8) reverbage /= 2;
 
 			// calculate sky value, before passing to echo
-			sky = Math.min(30, Math.max(0.1f, sky / posCount * 6f));
+			sky = Math.min(30, Math.max(0.1f, sky / (posCount * posCount)));
 
 			// interpolate values
 			decayFactor = (decayFactor + prevDecayFactor) / 2f;
@@ -333,10 +333,6 @@ public class Reverb {
 
 			sky = (sky + prevSkyFactor) / 2f;
 			prevSkyFactor = sky;
-
-
-			// do echo?
-			Echo.updateStats(data, clientPos, positions, decayFactor, sky);
 
 			// clear blocks
 			surfaces = new ArrayList<>();
@@ -350,11 +346,23 @@ public class Reverb {
 			lateReverbGain = reverbPercent * (lateReverbGainBase + lateReverbGainMultiplier * reverbage);
 			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
 
+
+			// do echo?
+			Echo.updateStats(data, clientPos, positions, decayTime, decayFactor, sky);
+
 			// debug
 			// System.out.println( posCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
 			// surfaces = new ArrayList<>();
 			// positions = new ArrayList<>();
 
+			// System.out.println(Float.toString(decayFactor) +
+			// "," + Float.toString(reverbage) +
+			// "," + Float.toString(sky) +
+			// "," + Float.toString(reflectionsGain) +
+			// "," + Float.toString(reflectionsDelay) +
+			// "," + Float.toString(lateReverbGain) +
+			// "," + Float.toString(lateReverbDelay)
+			// 	);
 
 			sky = 0;
 		}

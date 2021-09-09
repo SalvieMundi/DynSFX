@@ -42,17 +42,7 @@ import net.minecraft.util.math.Vec3d;
 @SuppressWarnings("rawtypes")
 public class MixinSoundSystem {
 
-	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update
-	// breaks
-	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/GameOptions;getSoundVolume(Lnet/minecraft/sound/SoundCategory;)F", ordinal = 0), method = "Lnet/minecraft/client/sound/SoundSystem;tick()V", locals = LocalCapture.CAPTURE_FAILHARD)
-	public void onTick(CallbackInfo ci, Iterator iterator, Map.Entry entry, Channel.SourceManager sourceManager,
-			final SoundInstance soundInstance) {
-		sourceManager.run(source -> {
-			SourceWithID sourceWithID = (SourceWithID) source;
-
-			DynamicSoundFilters.getFilterManager().updateSoundInstance(soundInstance, sourceWithID.getID() );
-		});
-	}
+	// not needed! Causes MANY issues with echo filter
 
 	// DEV NOTE: use LocalCapture.PRINT to check for changed locals when update
 	// breaks

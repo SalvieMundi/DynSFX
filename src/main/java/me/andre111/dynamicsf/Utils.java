@@ -32,29 +32,37 @@ package me.andre111.dynamicsf;
 public class Utils {
 
 
-    // clamping between 0 & 1 was done soo often, I figured I'd abstract it.
+    // clamping between two numbers was done soo often, I figured I'd abstract it.
     /**
      * Clamps the given value between 0 & 1
      */
-    public static double clamp (final double value) {
-        return Math.min(1, Math.max(value, 0) );
+    public static double clamp (final double value, final double ... range) {
+        final double min = range.length > 0 ?  range[0] : 0;
+        final double max = range.length >= 2 ? range[1] : 1;
+        return Math.min(max, Math.max(value, min) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
-    public static float clamp (final float value) {
-        return Math.min(1, Math.max(value, 0) );
+    public static float clamp (final float value, final float ... range) {
+        final float min = range.length > 0 ?  range[0] : 0;
+        final float max = range.length >= 2 ? range[1] : 1;
+        return Math.min(max, Math.max(value, min) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
-    public static int clamp (final int value) {
-        return Math.min(1, Math.max(value, 0) );
+    public static int clamp (final int value, final int ... range) {
+        final int min = range.length > 0 ?  range[0] : 0;
+        final int max = range.length >= 2 ? range[1] : 1;
+        return Math.min(max, Math.max(value, min) );
     }
     /**
      * Clamps the given value between 0 & 1
      */
-    public static long clamp (final long value) {
-        return Math.min(1, Math.max(value, 0) );
+    public static long clamp (final long value, final long ... range) {
+        final long min = range.length > 0 ?  range[0] : 0;
+        final long max = range.length >= 2 ? range[1] : 1;
+        return Math.min(max, Math.max(value, min) );
     }
 }
