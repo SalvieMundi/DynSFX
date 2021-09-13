@@ -148,10 +148,16 @@ public class Echo {
 		// evaluate average
 		newPos = newPos.add(furthest).multiply(1f / size);
 
-		// update values
-		reduce = reducer;
-		decay = decayValue;
-		sky = skyValue;
+		// update values - if echo's at all reasonable, that is
+		if (distance > 10) {
+			reduce = reducer;
+			decay = decayValue;
+			sky = skyValue;
+		} else {
+			reduce = 1;
+			decay = 0;
+			sky = 0;
+		}
 
 	}
 

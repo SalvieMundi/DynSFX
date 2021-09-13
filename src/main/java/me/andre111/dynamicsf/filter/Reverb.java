@@ -384,7 +384,7 @@ public class Reverb {
 			// if full block here
 			if ( client.world.getBlockState(blockPos).isFullCube(client.world, blockPos) ) {
 				// if distance is big enough
-				if (steps > 5) foundSurface = true;
+				if (steps > 2) foundSurface = true;
 				break;
 				// if found still fluid, it's a body of water, stop looping
 			} else if ( client.world.getFluidState(blockPos).isStill() ) break;
