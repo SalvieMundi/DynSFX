@@ -67,7 +67,7 @@ public class Reverb {
 	private static float roomRolloffFactor = 0f;
 	private static int decayHFLimit = 1;
 
-	private static int[] scanSizes = new int[] {50, 120, 50, 20, 50};
+	private static int[] scanSizes = new int[] {40, 50, 40, 20, 50};
 	// skip direction.up, use checkSky for that
 	private static final Direction[] validationOffsets = new Direction[] { Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 	// initial tracer value
@@ -75,8 +75,12 @@ public class Reverb {
 
 	// the direction-based increment used for raycasting
 	private static Vec3d tracer = initPoint;
+	// raycast rotation value
+	private static int tracerOffset = 0;
 	// how many sky-available blocks are there
 	private static float sky = 0;
+	// how far everything was, combined
+	private static float compositeDistance = 0;
 
 
 	// TODO: move this into settings update calculations
@@ -85,6 +89,7 @@ public class Reverb {
 	private static int quality = 4; // mid - 64
 	// starting offset for scanning
 	private static Vec3d halfBox = new Vec3d(quality, quality, quality).multiply(0.5);
+	// randomly generated offset for raycast
 	//	list of
 	//		surface location + list of
 	// 			blockID + material
@@ -192,53 +197,39 @@ public class Reverb {
 		// split up scanning over multiple ticks
 		if (ticks < 16) {
 			// raycast
-			final Object[] raycast = trace(client, clientPos, scanSizes[(int) ticks / 4], tracer);
+			final Object[] raycast = trace(client, clientPos/*.add(tracerOffset) we're rotating now*/, scanSizes[(int) ticks / 4], tracer);
 			final boolean foundSurface = (boolean) raycast[0];
 
 			// if something was hit, then gather information about it
 			if (foundSurface) {
 				Vec3d pos = (Vec3d) raycast[1];
 				final BlockPos blockPos = new BlockPos(pos);
-				// detect if it's a real surface, not a fickle obstruction
-				int surface = 0;
-				// check surrounding blocks
-				for (Direction direction : validationOffsets) {
-					// copy, then move the position in _ direction
-					BlockPos bPos = blockPos.offset(direction, 1);
-					if (client.world.getBlockState(bPos).isFullCube(client.world, bPos)) surface++;
-				}
-
-				// if there's at least 3 other blocks on the surface, then
-				// consider it a reverb point
-				if (surface >= 3) {
-
-					// move box bounds negative, so that surface spot is the center
-					pos = pos.subtract(halfBox);
-					// main calculation
-					// n^3 - I wonder if there's any way to reduce this
-					// to at least log(3n)
-					for (double x = 0; x < quality; x++) {
-						for (double z = 0; z < quality; z++) {
-							// loop through y first, less likely to need to
-							// get a different blockstate, resulting (I think)
-							// in better memory usage
-							for (double y = 0; y < quality; y++) {
-								// get information
-								final BlockState blockState = client.world.getBlockState(new BlockPos(pos.add(x, y, z)));
-								final Material material = blockState.getMaterial();
-								final Identifier blockID = Registry.BLOCK.getId(blockState.getBlock());
-								// if block could reverb, and is solid, await calculations
-								if (
-									material.blocksMovement() ||
-									!( material == Material.AIR
-									|| material == Material.WATER
-									|| material == Material.LAVA
-									) ) surfaces.add(new Pair<>(blockID, material));
-							}
+				// move box bounds negative, so that surface spot is the center
+				pos = pos.subtract(halfBox);
+				// main calculation
+				// n^3 - I wonder if there's any way to reduce this
+				// to at least log(3n)
+				for (double x = 0; x < quality; x++) {
+					for (double z = 0; z < quality; z++) {
+						// loop through y first, less likely to need to
+						// get a different blockstate, resulting (I think)
+						// in better memory usage
+						for (double y = 0; y < quality; y++) {
+							// get information
+							final BlockState blockState = client.world.getBlockState(new BlockPos(pos.add(x, y, z)));
+							final Material material = blockState.getMaterial();
+							final Identifier blockID = Registry.BLOCK.getId(blockState.getBlock());
+							// if block could reverb, and is solid, await calculations
+							if (
+								material.blocksMovement() ||
+								!( material == Material.AIR
+								|| material == Material.WATER
+								|| material == Material.LAVA
+								) ) surfaces.add(new Pair<>(blockID, material));
 						}
 					}
-					positions.add(new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
 				}
+				positions.add(new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
 			}
 
 			// move to the next cardinal direction
@@ -313,16 +304,14 @@ public class Reverb {
 			if (highReverb + midReverb + lowReverb > 0d) {
 				decayFactor += (highReverb - lowReverb) / (highReverb + midReverb + lowReverb);
 			}
-			decayFactor = Utils.clamp(decayFactor);//+ 0.8f);
+			decayFactor = Utils.clamp(decayFactor);
 
-			final int posCount = Math.max(1, positions.size());
-			float reverbage = posCount / 8f; // 16-s = 2
-
-			// calculate reverbage
-			// if (surfaceCount <= 8) reverbage /= 2;
+			final int posCount = Utils.clamp(positions.size(), 1,16);
+			// float reverbage = posCount / (float) (compositeDistance/posCount);
+			float reverbage = Utils.clamp(posCount / (float) Math.sqrt(compositeDistance), 0,5f);
 
 			// calculate sky value, before passing to echo
-			sky = Math.min(30, Math.max(0.1f, sky / (posCount * posCount)));
+			sky = Utils.clamp(sky / (posCount * posCount), 0.1f,30);
 
 			// interpolate values
 			decayFactor = (decayFactor + prevDecayFactor) / 2f;
@@ -346,31 +335,29 @@ public class Reverb {
 			lateReverbGain = reverbPercent * (lateReverbGainBase + lateReverbGainMultiplier * reverbage);
 			lateReverbDelay = lateReverbDelayMultiplier * reverbage;
 
-
-			// do echo?
+			// process echo values
 			Echo.updateStats(data, clientPos, positions, decayTime, decayFactor, sky);
 
 			// debug
-			// System.out.println( posCount + " surfaces\t" + decayFactor + " decay\t" + reverbage + " reverb\t" + sky + " sky\t" + decayTime + " decay\t" + reflectionsGain + " reflection\t" + lateReverbGain + " late\n");
-			// surfaces = new ArrayList<>();
-			// positions = new ArrayList<>();
-
-			// System.out.println(Float.toString(decayFactor) +
-			// "," + Float.toString(reverbage) +
-			// "," + Float.toString(sky) +
-			// "," + Float.toString(reflectionsGain) +
-			// "," + Float.toString(reflectionsDelay) +
-			// "," + Float.toString(lateReverbGain) +
-			// "," + Float.toString(lateReverbDelay)
-			// 	);
+			System.out.println(Float.toString(decayFactor) +
+			"," + Float.toString(reverbage) +
+			"," + Float.toString(sky) +
+			"," + Float.toString(reflectionsGain) +
+			"," + Float.toString(reflectionsDelay) +
+			"," + Float.toString(lateReverbGain) +
+			"," + Float.toString(lateReverbDelay)
+				);
 
 			sky = 0;
+			compositeDistance = 0;
+			// 90/5*2=36 - 5s loop
+			tracerOffset = (tracerOffset + 36) % 360;
 		}
 	}
 
 	private static Object[] trace(final MinecraftClient client, Vec3d pos, int range, final Vec3d tracer) {
-		// prevent crashing on null world
-		// if (client.world == null || pos == null) return new Object[] { false, new Vec3d(0,0,0), 0 };
+
+		final Vec3d offsetTracer = tracer.rotateY(tracerOffset);
 
 		BlockPos blockPos = new BlockPos(pos);
 		boolean foundSurface = false;
@@ -384,12 +371,27 @@ public class Reverb {
 			// if full block here
 			if ( client.world.getBlockState(blockPos).isFullCube(client.world, blockPos) ) {
 				// if distance is big enough
-				if (steps > 2) foundSurface = true;
+				if (steps >= 2) {
+					
+					// detect if it's a real surface, not a fickle obstruction
+					int surface = 0;
+					// check surrounding blocks
+					for (Direction direction : validationOffsets) {
+						// copy, then move the position in _ direction
+						BlockPos bPos = blockPos.offset(direction, 1);
+						if (client.world.getBlockState(bPos).isFullCube(client.world, bPos)) surface++;
+					}
+					
+					if (surface >= 3) {
+						foundSurface = true;
+						compositeDistance += steps;
+					}
+				}
 				break;
 				// if found still fluid, it's a body of water, stop looping
 			} else if ( client.world.getFluidState(blockPos).isStill() ) break;
 			// otherwise, move along
-			pos = pos.add(tracer);
+			pos = pos.add(offsetTracer);
 
 			// check sky access every 5 blocks, starting at 1
 			if ( checkSky && steps % 5 == 1 && hasSkyAbove(client.world, blockPos) ) sky++;
