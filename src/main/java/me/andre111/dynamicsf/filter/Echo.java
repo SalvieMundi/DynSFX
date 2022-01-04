@@ -178,52 +178,55 @@ public class Echo {
 				continue;
 			}
 			
-			final SoundInstance sound = instance.getSecond();
-
-			float timer = instance.getFirst();
-			// if timer's still going
-			if (timer > 0) {
-				// if reverb's not strong enough, don't duplicate sounds in a gross way
-				if (reduce <= 2) {
-					// System.out.println(decay);
-					sounds.remove(i);
-					continue;
-				}
-
-				final float reducer = Utils.clamp(reduce/20f,0f,0.75f);
-				// decay the timer
-				timer *= reducer * reducer * decay * decay;
-				timer--;
-
-				// if timer's still going, then don't do last section
+			if (instance != null) {
+				
+				final SoundInstance sound = instance.getSecond();
+	
+				float timer = instance.getFirst();
+				// if timer's still going
 				if (timer > 0) {
-					// update timer value
-					sounds.set(i, new Pair<Float,SoundInstance>(timer, sound));
-
-					// don't loop infinitely!
-					i++;
-					continue;
+					// if reverb's not strong enough, don't duplicate sounds in a gross way
+					if (reduce <= 2) {
+						// System.out.println(decay);
+						sounds.remove(i);
+						continue;
+					}
+	
+					final float reducer = Utils.clamp(reduce/20f,0f,0.75f);
+					// decay the timer
+					timer *= reducer * reducer * decay * decay;
+					timer--;
+	
+					// if timer's still going, then don't do last section
+					if (timer > 0) {
+						// update timer value
+						sounds.set(i, new Pair<Float,SoundInstance>(timer, sound));
+	
+						// don't loop infinitely!
+						i++;
+						continue;
+					}
 				}
+				// else:
+	
+				// ensure the sound's ignored by echo
+				ignore++;
+				// calc volume: (vol/3 - echoDistance/128) * decay
+				final float volume = (Utils.clamp(sound.getVolume() / 3f -
+					(float) (new Vec3d(sound.getX(),sound.getY(),sound.getZ()))
+					.distanceTo(newPos) / 128f)) * decay;
+				// play sound, useDistance=false - no further delay
+				client.world.playSound(newPos.getX(), newPos.getY(), newPos.getZ(), new SoundEvent(sound.getId()), sound.getCategory(), volume, idPitch, false);
+				// remove the sound
+				sounds.remove(i);
+	
+				// debug
+				// System.out.println("\n\n\nECHO\n\n\n");
+				// System.out.print(sound.getId() + "\t\t");
+				// System.out.println(increment);
+	
+				// don't increment here, as a sound's removed
 			}
-			// else:
-
-			// ensure the sound's ignored by echo
-			ignore++;
-			// calc volume: (vol/3 - echoDistance/128) * decay
-			final float volume = (Utils.clamp(sound.getVolume() / 3f -
-				(float) (new Vec3d(sound.getX(),sound.getY(),sound.getZ()))
-				.distanceTo(newPos) / 128f)) * decay;
-			// play sound, useDistance=false - no further delay
-			client.world.playSound(newPos.getX(), newPos.getY(), newPos.getZ(), new SoundEvent(sound.getId()), sound.getCategory(), volume, idPitch, false);
-			// remove the sound
-			sounds.remove(i);
-
-			// debug
-			// System.out.println("\n\n\nECHO\n\n\n");
-			// System.out.print(sound.getId() + "\t\t");
-			// System.out.println(increment);
-
-			// don't increment here, as a sound's removed
 		}
 	}
 }

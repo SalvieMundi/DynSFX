@@ -1,7 +1,6 @@
 plugins {
 	id 'fabric-loom' version '0.9.+'
 	id 'maven-publish'
-    id 'org.cadixdev.licenser' version '0.6.1'
 }
 
 sourceCompatibility = JavaVersion.VERSION_16
@@ -47,12 +46,6 @@ processResources {
 
 }
 
-license {
-	header project.file('HEADER')
-	include '**/*.java'
-	newLine false
-}
-
 // ensure that the encoding is set to UTF-8, no matter what the system default is
 // this fixes some edge cases with special characters not displaying correctly
 // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
@@ -66,10 +59,6 @@ tasks.withType(JavaCompile) {
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = "sources"
 	from sourceSets.main.allSource
-}
-
-jar {
-	from "LICENSE"
 }
 
 // configure the maven publication
